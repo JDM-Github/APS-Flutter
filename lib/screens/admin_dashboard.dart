@@ -30,7 +30,10 @@ class AdminAppbar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: const Text(
         'Admin Dashboard',
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16, // Reduced font size
+        ),
       ),
       automaticallyImplyLeading: false,
       foregroundColor: Colors.white,
@@ -45,7 +48,10 @@ class AdminAppbar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.notifications),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (builder) => NotificationScreen()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (builder) => NotificationScreen()),
+            );
           },
         ),
         IconButton(
@@ -55,7 +61,10 @@ class AdminAppbar extends StatelessWidget implements PreferredSizeWidget {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             } else {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (builder) => LoginScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (builder) => LoginScreen()),
+              );
             }
           },
         ),
@@ -163,13 +172,16 @@ class NavigatorEmployee extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: padding),
         child: ElevatedButton.icon(
           onPressed: onPressed,
-          icon: Icon(icon, size: 20, color: Colors.white),
+          icon: Icon(icon, size: 18, color: Colors.white),
           label: Text(
             label,
-            style: const TextStyle(fontSize: 14, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 10,
+              color: Colors.white,
+            ),
           ),
           style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             backgroundColor: const Color.fromARGB(255, 80, 160, 170),
             elevation: 5,
             shape: RoundedRectangleBorder(
@@ -182,7 +194,6 @@ class NavigatorEmployee extends StatelessWidget {
   }
 }
 
-// User Info Section
 class AdminUserInfoSection extends StatelessWidget {
   const AdminUserInfoSection({super.key});
 

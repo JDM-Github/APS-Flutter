@@ -86,7 +86,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                 child: Text(
                   'List of all Employee',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -100,17 +100,28 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                   child: SizedBox(
                     width: constraints.maxWidth,
                     child: isLoading
-                        ? const Center(child: Text("Loading all employees"))
+                        ? const Center(
+                            child: Text(
+                              "Loading all employees",
+                              style: TextStyle(fontSize: 12), // Smaller font size
+                            ),
+                          )
                         : employees.isEmpty
-                            ? const Center(child: Text("There are no employees"))
+                            ? const Center(
+                                child: Text(
+                                  "There are no employees",
+                                  style: TextStyle(fontSize: 12), // Smaller font size
+                                ),
+                              )
                             : DataTable(
                                 columnSpacing: 2,
                                 headingRowHeight: 30,
                                 headingTextStyle: const TextStyle(
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 12, // Adjusted font size
                                   color: Color.fromARGB(255, 80, 160, 170),
                                 ),
-                                dataTextStyle: const TextStyle(fontSize: 14),
+                                dataTextStyle: const TextStyle(fontSize: 12), // Adjusted font size
                                 headingRowColor: WidgetStateProperty.all(
                                   const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
                                 ),
@@ -118,19 +129,34 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                   DataColumn(
                                     label: SizedBox(
                                       width: MediaQuery.of(context).size.width * 0.20,
-                                      child: const Center(child: Text('Name')),
+                                      child: const Center(
+                                        child: Text(
+                                          'Name',
+                                          style: TextStyle(fontSize: 12), // Smaller font size
+                                        ),
+                                      ),
                                     ),
                                   ),
                                   DataColumn(
                                     label: SizedBox(
                                       width: MediaQuery.of(context).size.width * 0.20,
-                                      child: const Center(child: Text('View')),
+                                      child: const Center(
+                                        child: Text(
+                                          'View',
+                                          style: TextStyle(fontSize: 12), // Smaller font size
+                                        ),
+                                      ),
                                     ),
                                   ),
                                   DataColumn(
                                     label: SizedBox(
                                       width: MediaQuery.of(context).size.width * 0.20,
-                                      child: const Center(child: Text('Action')),
+                                      child: const Center(
+                                        child: Text(
+                                          'Action',
+                                          style: TextStyle(fontSize: 12), // Smaller font size
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -141,7 +167,10 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                       DataCell(
                                         SizedBox(
                                           width: MediaQuery.of(context).size.width * 0.4,
-                                          child: Text("${user['lastName']}, ${user['firstName']}"),
+                                          child: Text(
+                                            "${user['lastName']}, ${user['firstName']}",
+                                            style: const TextStyle(fontSize: 12), // Smaller font size
+                                          ),
                                         ),
                                       ),
                                       DataCell(
@@ -168,12 +197,15 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                               );
                                             },
                                             style: ElevatedButton.styleFrom(
-                                              padding: const EdgeInsets.symmetric(vertical: 10),
+                                              padding: const EdgeInsets.symmetric(vertical: 8), // Adjusted padding
                                               backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                                             ),
                                             child: const Text(
                                               'View',
-                                              style: TextStyle(color: Colors.white),
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12, // Smaller font size
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -187,7 +219,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                               // toggleUserStatus(user);
                                             },
                                             style: ElevatedButton.styleFrom(
-                                              padding: const EdgeInsets.symmetric(vertical: 10),
+                                              padding: const EdgeInsets.symmetric(vertical: 8), // Adjusted padding
                                               backgroundColor: widget.projectId != "" || isDeactivated
                                                   ? (widget.projectId != "" ? Colors.red : Colors.green)
                                                   : Colors.red,
@@ -196,7 +228,10 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                               widget.projectId == ""
                                                   ? (isDeactivated ? "ACTIVATE" : "DEACTIVATE")
                                                   : "REMOVE",
-                                              style: const TextStyle(color: Colors.white),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12, // Smaller font size
+                                              ),
                                             ),
                                           ),
                                         ),

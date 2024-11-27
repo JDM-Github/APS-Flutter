@@ -34,8 +34,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(notification['title']),
-          content: Text(notification['message']),
+          title: Text(
+            notification['title'],
+            style: const TextStyle(fontSize: 14), // Smaller font size
+          ),
+          content: Text(
+            notification['message'],
+            style: const TextStyle(fontSize: 12), // Smaller font size
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -44,7 +50,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 });
                 Navigator.pop(context);
               },
-              child: const Text('Mark as Read'),
+              child: const Text(
+                'Mark as Read',
+                style: TextStyle(fontSize: 12), // Smaller font size
+              ),
             ),
           ],
         );
@@ -56,7 +65,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontSize: 16), // Smaller font size
+        ),
         backgroundColor: const Color.fromARGB(255, 80, 160, 170),
         foregroundColor: Colors.white,
       ),
@@ -69,12 +81,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
             elevation: 4,
             child: ListTile(
               onTap: () => _showNotificationDetails(notification),
-              title: Text(notification['title']),
-              subtitle: Text(notification['message']),
+              title: Text(
+                notification['title'],
+                style: const TextStyle(
+                  fontSize: 14, // Smaller font size
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                notification['message'],
+                style: const TextStyle(fontSize: 12), // Smaller font size
+              ),
               trailing: Icon(
-                notification['read']
-                    ? Icons.check_circle
-                    : Icons.radio_button_unchecked,
+                notification['read'] ? Icons.check_circle : Icons.radio_button_unchecked,
                 color: notification['read'] ? Colors.green : Colors.blue,
               ),
               tileColor: notification['read']
