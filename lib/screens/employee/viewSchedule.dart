@@ -87,9 +87,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
           bool isEven = index % 2 == 0;
 
           return Container(
-            color: isEven
-                ? Colors.grey.shade100
-                : Colors.white, // Alternating colors
+            color: isEven ? Colors.grey.shade100 : Colors.white, // Alternating colors
             child: Column(
               children: [
                 ListTile(
@@ -111,8 +109,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     );
   }
 
-  void _showScheduleDetails(
-      BuildContext context, Map<String, String> schedule, bool isFinished) {
+  void _showScheduleDetails(BuildContext context, Map<String, String> schedule, bool isFinished) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -143,18 +140,12 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
               if (isFinished)
                 const Text(
                   'This schedule has been completed.',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
                 )
               else
                 const Text(
                   'This schedule is still pending.',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orange),
                 ),
               const SizedBox(height: 16),
 

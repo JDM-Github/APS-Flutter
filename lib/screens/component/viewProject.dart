@@ -1,46 +1,15 @@
+import 'package:first_project/flutter_session.dart';
+import 'package:first_project/screens/component/employee_list.dart';
 import 'package:first_project/screens/component/employeeTable.dart';
 import 'package:flutter/material.dart';
 
-class Project {
-  final String title;
-  final String description;
-  final String projectManager;
-  final List<String> employees;
-  final double progress;
-  final String location;
-  final DateTime startDate;
-  final DateTime endDate;
-  final String projectType;
-
-  Project({
-    required this.title,
-    required this.description,
-    required this.projectManager,
-    required this.employees,
-    required this.progress,
-    required this.location,
-    required this.startDate,
-    required this.endDate,
-    required this.projectType,
-  });
-}
-
 class ProjectDetailsScreen extends StatelessWidget {
-  // Dummy project data
-  final Project project = Project(
-    title: 'Mobile App Development',
-    description: 'Develop a mobile app for e-commerce with Flutter.',
-    projectManager: 'John Doe',
-    employees: ['Alice', 'Bob', 'Charlie', 'David'],
-    progress: 75.0, // Progress in percentage
-    location: 'New York, USA',
-    startDate: DateTime(2023, 1, 15),
-    endDate: DateTime(2024, 1, 15),
-    projectType: 'Software Development',
-  );
+  final Map<String, dynamic> project;
+  const ProjectDetailsScreen({required this.project, super.key});
 
   @override
   Widget build(BuildContext context) {
+    bool? isAdmin = Config.get('isAdmin');
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
@@ -55,21 +24,20 @@ class ProjectDetailsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildCard(
-                title: project.title,
+                title: project['projectType'],
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildDetailRow('Project Manager', project.location),
-                      _buildDetailRow('Location', project.location),
-                      _buildDetailRow('Start Date',
-                          project.startDate.toLocal().toString().split(' ')[0]),
-                      _buildDetailRow('End Date',
-                          project.endDate.toLocal().toString().split(' ')[0]),
-                      _buildDetailRow('Project Type', project.projectType),
+                      _buildDetailRow(
+                          'Project Manager', '${project['Users']['firstName']} ${project['Users']['lastName']}'),
+                      _buildDetailRow('Location', project['projectLocation']),
+                      _buildDetailRow('Start Date', project['startDate']),
+                      _buildDetailRow('End Date', project['endDate']),
+                      _buildDetailRow('Project Type', project['projectType']),
                       Text(
-                        project.description,
+                        project['projectDescription'],
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -79,7 +47,32 @@ class ProjectDetailsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const Expanded(child: AllEmployeeTable()),
+              if (project['id'] != null)
+                Expanded(
+                    child: AllEmployeeTable(
+                  projectId: project['id'],
+                )),
+              if (isAdmin != null && isAdmin)
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (builder) => EmployeeListPage(ids: project['id'], notAssigned: true)));
+                    },
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    label: const Text('Add Employee', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                )
             ],
           ),
         ),

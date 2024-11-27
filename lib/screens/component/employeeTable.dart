@@ -3,7 +3,8 @@ import 'package:first_project/screens/component/viewEmployee.dart';
 import 'package:flutter/material.dart';
 
 class AllEmployeeTable extends StatefulWidget {
-  const AllEmployeeTable({super.key});
+  final String projectId;
+  const AllEmployeeTable({this.projectId = "", super.key});
 
   @override
   State<AllEmployeeTable> createState() => _AllEmployeeTableState();
@@ -12,12 +13,6 @@ class AllEmployeeTable extends StatefulWidget {
 class _AllEmployeeTableState extends State<AllEmployeeTable> {
   List<dynamic> employees = [];
   bool isLoading = true;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   init();
-  // }
 
   @override
   void initState() {
@@ -28,13 +23,25 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
   Future<void> init() async {
     RequestHandler requestHandler = RequestHandler();
     try {
-      Map<String, dynamic> response = await requestHandler.handleRequest(
-        context,
-        'users/get-all-employees',
-        body: {},
-      );
-      isLoading = false;
+      Map<String, dynamic> response = {};
+      if (widget.projectId == "") {
+        response = await requestHandler.handleRequest(
+          context,
+          'users/get-all-employees',
+          body: {},
+        );
+      } else {
+        response = await requestHandler.handleRequest(
+          context,
+          'users/get-all-project-employee',
+          body: {"id": widget.projectId},
+        );
+      }
+      setState(() {
+        isLoading = false;
+      });
       if (response['success'] == true) {
+        print(response['users']);
         setAllEmployee(response['users']);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -44,10 +51,12 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
         );
       }
     } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred: $e')),
       );
-      print(e);
     }
   }
 
@@ -179,12 +188,14 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                             },
                                             style: ElevatedButton.styleFrom(
                                               padding: const EdgeInsets.symmetric(vertical: 10),
-                                              backgroundColor: isDeactivated
-                                                  ? Colors.green
-                                                  : Colors.red, // Red for Deactivated, Green for Active
+                                              backgroundColor: widget.projectId != "" || isDeactivated
+                                                  ? (widget.projectId != "" ? Colors.red : Colors.green)
+                                                  : Colors.red,
                                             ),
                                             child: Text(
-                                              isDeactivated ? "ACTIVATE" : "DEACTIVATE",
+                                              widget.projectId == ""
+                                                  ? (isDeactivated ? "ACTIVATE" : "DEACTIVATE")
+                                                  : "REMOVE",
                                               style: const TextStyle(color: Colors.white),
                                             ),
                                           ),
@@ -201,36 +212,6 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
           ],
         ),
       ),
-    );
-  }
-
-  void _showEventDetails(BuildContext context, String projectName, String eventName, String time) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Event Details'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Project Name: $projectName'),
-              const SizedBox(height: 10),
-              Text('Event Name: $eventName'),
-              const SizedBox(height: 10),
-              Text('Time: $time'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

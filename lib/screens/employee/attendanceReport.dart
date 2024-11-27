@@ -1,4 +1,6 @@
+import 'package:first_project/flutter_session.dart';
 import 'package:first_project/screens/component/attendanceReport.dart';
+import 'package:first_project/screens/component/employee_attendance_report.dart';
 import 'package:flutter/material.dart';
 
 class AttendanceReportScreen extends StatefulWidget {
@@ -39,6 +41,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic> users = Config.get('user');
     return Scaffold(
       appBar: AppBar(
         title: const Text("Attendance Report"),
@@ -66,12 +69,10 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                 });
               },
             ),
-            const AttendanceReportTable(),
+            if (users['isManager']) const AttendanceReportTable(),
+            if (!users['isManager']) EmployeeAttendanceReportTable(users),
             const SizedBox(height: 20),
-            SaveAsCsvButton(
-                employeeData: employeeData,
-                month: selectedMonth,
-                year: selectedYear),
+            SaveAsCsvButton(employeeData: employeeData, month: selectedMonth, year: selectedYear),
           ],
         ),
       ),
@@ -106,10 +107,8 @@ class AttendanceFilter extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.0),
           gradient: LinearGradient(
             colors: [
-              const Color.fromARGB(255, 80, 160, 170)
-                  .withOpacity(0.1), // Start color
-              const Color.fromARGB(255, 50, 130, 150)
-                  .withOpacity(0.1), // End color
+              const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1), // Start color
+              const Color.fromARGB(255, 50, 130, 150).withOpacity(0.1), // End color
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -123,8 +122,7 @@ class AttendanceFilter extends StatelessWidget {
               Card(
                   child: Container(
                 width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 80, 160, 170),
                   borderRadius: BorderRadius.circular(10),
@@ -161,23 +159,18 @@ class AttendanceFilter extends StatelessWidget {
                       onChanged: onMonthChanged,
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: const Color.fromARGB(255, 80, 160, 170)
-                            .withOpacity(0.3),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 15, vertical: 10),
+                        fillColor: const Color.fromARGB(255, 80, 160, 170).withOpacity(0.3),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                         border: OutlineInputBorder(
-                          borderSide:
-                              const BorderSide(color: Colors.transparent),
+                          borderSide: const BorderSide(color: Colors.transparent),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              const BorderSide(color: Colors.transparent),
+                          borderSide: const BorderSide(color: Colors.transparent),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderSide:
-                              const BorderSide(color: Colors.transparent),
+                          borderSide: const BorderSide(color: Colors.transparent),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -204,23 +197,18 @@ class AttendanceFilter extends StatelessWidget {
                         onChanged: onYearChanged,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: const Color.fromARGB(255, 80, 160, 170)
-                              .withOpacity(0.3),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 15, vertical: 10),
+                          fillColor: const Color.fromARGB(255, 80, 160, 170).withOpacity(0.3),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                           border: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -260,8 +248,7 @@ class SaveAsCsvButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color.fromARGB(255, 80, 160, 170),
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
     );

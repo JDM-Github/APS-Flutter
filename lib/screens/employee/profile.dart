@@ -1,9 +1,10 @@
+import 'package:first_project/flutter_session.dart';
 import 'package:first_project/screens/component/projectInfo.dart';
-import 'package:first_project/screens/employee_dashboard.dart';
+import 'package:first_project/screens/component/userInfo.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
-  ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -42,6 +43,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic> users = Config.get('user');
+    addressController.text = users['location'];
+    phoneController.text = users['phoneNumber'];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -52,9 +56,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // Profile Image
-            const UserInfoSection(),
+            UserInfoSection(
+              fullName: users['firstName'] + " " + users['lastName'],
+              position: users['position'],
+              ids: users['id'],
+              profileImage: users['profileImage'],
+            ),
             const ProjectInfoSection(),
+            Card(
+              elevation: 5,
+              child: Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Wrap(
+                  spacing: 8.0,
+                  children: (users['skills'] as List)
+                      .map((skill) => Chip(
+                            side: BorderSide.none,
+                            backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                            label: Text(
+                              skill,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ),
             const SizedBox(height: 5),
 
             Card(
@@ -66,17 +93,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ProfileDetailRow('Profile ID', profileData['profileId']!),
-                      ProfileDetailRow('First Name', profileData['firstName']!),
-                      ProfileDetailRow('Middle Name', profileData['middleName']!),
-                      ProfileDetailRow('Last Name', profileData['lastName']!),
-                      ProfileDetailRow('Gender', profileData['gender']!),
-                      ProfileDetailRow('Email', profileData['email']!),
-                      ProfileDetailRow('Position', profileData['position']!),
-                      ProfileDetailRow('Department', profileData['department']!),
-                      ProfileDetailRow('Start Date', profileData['startDate']!),
-                      ProfileDetailRow('End Date', profileData['endDate']!),
-                      ProfileDetailRow('Salary', profileData['salary']!),
+                      ProfileDetailRow('Profile ID', users['id']!),
+                      ProfileDetailRow('First Name', users['firstName']!),
+                      ProfileDetailRow('Middle Name', users['middleName']!),
+                      ProfileDetailRow('Last Name', users['lastName']!),
+                      ProfileDetailRow('Gender', users['gender']!),
+                      ProfileDetailRow('Email', users['email']!),
+                      ProfileDetailRow('Position', users['position'] == "" ? "NOT ASSIGNED" : users['position']),
+                      ProfileDetailRow('Department', users['department']!),
+                      ProfileDetailRow('Start Date', users['startDate']!),
+                      ProfileDetailRow('End Date', users['endDate'] ?? "NOT SET"),
+                      ProfileDetailRow('Salary', users['position'] == "" ? "NOT ASSIGNED" : users['salary']!),
                     ],
                   ),
                 ),
@@ -86,9 +113,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // Editable Fields
             Card(
-              elevation: 4,
+              elevation: 5,
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -96,7 +123,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       label: 'Address',
                       controller: addressController,
                     ),
-                    const SizedBox(height: 16),
                     EditableProfileDetail(
                       label: 'Phone',
                       controller: phoneController,
@@ -111,7 +137,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ElevatedButton(
               onPressed: _saveProfileChanges,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                 minimumSize: Size(double.infinity, 50), // Full-width button
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -119,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: const Text(
                 'Save Changes',
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
           ],
@@ -136,9 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  // Function to save the changes
   void _saveProfileChanges() {
-    // Save the changes and show a success message
     setState(() {
       profileData['address'] = addressController.text;
       profileData['phone'] = phoneController.text;
@@ -150,12 +174,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// Reusable Widget to display profile details
 class ProfileDetailRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const ProfileDetailRow(this.label, this.value, {Key? key}) : super(key: key);
+  const ProfileDetailRow(this.label, this.value, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -193,10 +216,6 @@ class EditableProfileDetail extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,

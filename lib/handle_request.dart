@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+// RESTAPI
+
 class RequestHandler {
   final bool development;
   RequestHandler({this.development = true});
   String get baseUrl {
-    return development
-        ? 'http://192.168.100.151:8888'
-        : 'https://instantmine.netlify.app';
+    return development ? 'http://192.168.89.58:8888' : 'https://instantmine.netlify.app';
   }
 
   Future<Map<String, dynamic>> handleRequest(
@@ -34,10 +34,7 @@ class RequestHandler {
       if (responseData['success'] == true) {
         return responseData;
       } else if (responseData['success'] == false) {
-        return {
-          'success': false,
-          'message': responseData['message'] ?? "Invalid username or password."
-        };
+        return {'success': false, 'message': responseData['message'] ?? "Invalid username or password."};
       } else {
         throw Exception('Failed to load data');
       }

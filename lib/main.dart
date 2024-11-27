@@ -1,7 +1,9 @@
+import 'package:first_project/flutter_session.dart';
 import 'package:flutter/material.dart';
 import 'screens/login.dart';
 
 void main() {
+  Config.load();
   runApp(const MyApp());
 }
 

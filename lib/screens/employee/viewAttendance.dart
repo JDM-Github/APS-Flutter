@@ -1,12 +1,13 @@
+import 'package:first_project/handle_request.dart';
 import 'package:flutter/material.dart';
 
 // EmployeeViewAttendance Screen
 class EmployeeViewAttendanceScreen extends StatefulWidget {
-  const EmployeeViewAttendanceScreen({super.key});
+  final dynamic users;
+  const EmployeeViewAttendanceScreen({this.users, super.key});
 
   @override
-  State<EmployeeViewAttendanceScreen> createState() =>
-      _EmployeeViewAttendanceScreenState();
+  State<EmployeeViewAttendanceScreen> createState() => _EmployeeViewAttendanceScreenState();
 }
 
 abstract class Employee {
@@ -44,15 +45,9 @@ class AttendedEmployee implements Employee {
   });
 }
 
-class _EmployeeViewAttendanceScreenState
-    extends State<EmployeeViewAttendanceScreen> {
-  final List<String> _employees = [
-    'John Doe',
-    'Jane Smith',
-    'Michael Johnson',
-    'Emily Davis'
-  ];
-
+class _EmployeeViewAttendanceScreenState extends State<EmployeeViewAttendanceScreen> {
+  bool isAttendanceSet = false;
+  final List<String> _employees = ['John Doe', 'Jane Smith', 'Michael Johnson', 'Emily Davis'];
   final List<AttendedEmployee> _attendedEmployees = [];
 
   String? _selectedEmployee;
@@ -70,15 +65,9 @@ class _EmployeeViewAttendanceScreenState
           _attendedEmployees.add(
             AttendedEmployee(
               employeeName: _selectedEmployee!,
-              timeIn: _timeInController.text.isNotEmpty
-                  ? _timeInController.text
-                  : '08:00 AM',
-              timeOut: _timeOutController.text.isNotEmpty
-                  ? _timeOutController.text
-                  : '05:00 PM',
-              place: _placeController.text.isNotEmpty
-                  ? _placeController.text
-                  : 'Office',
+              timeIn: _timeInController.text.isNotEmpty ? _timeInController.text : '08:00 AM',
+              timeOut: _timeOutController.text.isNotEmpty ? _timeOutController.text : '05:00 PM',
+              place: _placeController.text.isNotEmpty ? _placeController.text : 'Office',
             ),
           );
         });
@@ -191,8 +180,7 @@ class _EmployeeViewAttendanceScreenState
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                     ),
-                    child: const Text('Add to Attendance',
-                        style: TextStyle(color: Colors.white)),
+                    child: const Text('Add to Attendance', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -201,6 +189,38 @@ class _EmployeeViewAttendanceScreenState
         );
       },
     );
+  }
+
+  Future<void> setAttendance() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'attendance/setAttendance',
+        body: {"userId": widget.users['id']},
+      );
+      setState(() {});
+      if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Attendance has been set successfully.'),
+          ),
+        );
+        setState(() {
+          isAttendanceSet = true;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Adding attendance error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
   }
 
   @override
@@ -215,10 +235,25 @@ class _EmployeeViewAttendanceScreenState
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _showAddAttendanceModal,
+                onLongPress: null,
+                onPressed: isAttendanceSet
+                    ? null
+                    : () async {
+                        await setAttendance();
+                      },
+                label: const Text('Set Attendance', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onLongPress: null,
+                onPressed: isAttendanceSet ? _showAddAttendanceModal : null,
                 icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text('Add Attendance',
-                    style: TextStyle(color: Colors.white)),
+                label: const Text('Add Attendance', style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                 ),
@@ -294,8 +329,7 @@ class _EmployeeViewAttendanceScreenState
   }
 }
 
-class EmployeeViewAttendanceAppBar extends StatelessWidget
-    implements PreferredSizeWidget {
+class EmployeeViewAttendanceAppBar extends StatelessWidget implements PreferredSizeWidget {
   const EmployeeViewAttendanceAppBar({super.key});
 
   @override

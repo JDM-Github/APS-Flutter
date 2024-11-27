@@ -1,11 +1,14 @@
+import 'package:first_project/flutter_session.dart';
 import 'package:first_project/screens/component/employeeSchedule.dart';
 import 'package:first_project/screens/component/projectInfo.dart';
+import 'package:first_project/screens/component/userInfo.dart';
 import 'package:first_project/screens/employee/attendanceReport.dart';
 import 'package:first_project/screens/employee/manageLeave.dart';
 import 'package:first_project/screens/component/notification.dart';
 import 'package:first_project/screens/employee/profile.dart';
 import 'package:first_project/screens/employee/viewAttendance.dart';
-import 'package:first_project/screens/employee/viewProject.dart';
+import 'package:first_project/screens/component/viewProject.dart';
+import 'package:first_project/screens/login.dart';
 // import 'package:first_project/screens/employee/viewSchedule.dart';
 import 'package:flutter/material.dart';
 
@@ -55,7 +58,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.logout),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (builder) => LoginScreen()));
           },
         ),
       ],
@@ -71,15 +74,21 @@ class DashboardBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
+    Map<String, dynamic> users = Config.get('user');
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          UserInfoSection(),
-          ProjectInfoSection(),
-          NavigatorEmployee(),
-          Expanded(
+          UserInfoSection(
+            fullName: users['firstName'] + " " + users['lastName'],
+            position: users['position'],
+            ids: users['id'],
+            profileImage: users['profileImage'],
+          ),
+          const ProjectInfoSection(),
+          const NavigatorEmployee(),
+          const Expanded(
             child: EmployeeSchedule(),
           ),
         ],
@@ -93,6 +102,7 @@ class NavigatorEmployee extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic> users = Config.get('user');
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -115,7 +125,8 @@ class NavigatorEmployee extends StatelessWidget {
                 label: 'View Attendance',
                 icon: Icons.check_circle_outline,
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (builder) => const EmployeeViewAttendanceScreen()));
+                  Navigator.push(
+                      context, MaterialPageRoute(builder: (builder) => EmployeeViewAttendanceScreen(users: users)));
                 },
               ),
               buildExpandedActionButton(
@@ -152,7 +163,17 @@ class NavigatorEmployee extends StatelessWidget {
                 label: 'View Project',
                 icon: Icons.folder,
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (builder) => ProjectDetailsScreen()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (builder) => ProjectDetailsScreen(project: {
+                                'projectDescription': 'Develop a mobile app for e-commerce with Flutter.',
+                                'Users': {'firstName': 'John', 'lastName': 'Doe'},
+                                'projectLocation': 'New York, USA',
+                                'startDate': DateTime(2023, 1, 15).toString(),
+                                'endDate': DateTime(2024, 1, 15).toString(),
+                                'projectType': 'Software Development',
+                              })));
                 },
               ),
             ],
@@ -192,86 +213,3 @@ class NavigatorEmployee extends StatelessWidget {
   }
 }
 
-class UserInfoSection extends StatelessWidget {
-  const UserInfoSection({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color.fromARGB(255, 80, 160, 170), // Base color
-            Color.fromARGB(255, 40, 120, 130), // A darker shade for the gradient
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: const Row(
-        children: [
-          CircleAvatar(
-            radius: 35,
-            backgroundImage: AssetImage('assets/user.png'),
-            backgroundColor: Colors.white,
-          ),
-          SizedBox(width: 15),
-
-          // User Details
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.person, color: Colors.white70, size: 18),
-                  SizedBox(width: 5),
-                  Text(
-                    'John Doe',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.work_outline, color: Colors.white70, size: 18),
-                  SizedBox(width: 5),
-                  Text(
-                    'Project Manager',
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.badge, color: Colors.white70, size: 18),
-                  SizedBox(width: 5),
-                  Text(
-                    'ID: 1245345',
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Employee Schedule Table Section

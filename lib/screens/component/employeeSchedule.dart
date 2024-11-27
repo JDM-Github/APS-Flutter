@@ -90,7 +90,10 @@ class EmployeeSchedule extends StatelessWidget {
                               SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.20,
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    showDescriptionDialog(
+                                        context, "This is the description text. Pass your description here.");
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 10),
@@ -118,34 +121,25 @@ class EmployeeSchedule extends StatelessWidget {
     );
   }
 
-  void _showEventDetails(
-      BuildContext context, String projectName, String eventName, String time) {
+  void showDescriptionDialog(BuildContext context, String description) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Event Details'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Project Name: $projectName'),
-              const SizedBox(height: 10),
-              Text('Event Name: $eventName'),
-              const SizedBox(height: 10),
-              Text('Time: $time'),
-            ],
-          ),
+          title: const Text("Description"),
+          content: Text(description),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
-              child: const Text('Close'),
+              child: const Text("Close"),
             ),
           ],
         );
       },
     );
   }
+
+
 }

@@ -1,3 +1,4 @@
+import 'package:first_project/handle_request.dart';
 import 'package:first_project/screens/component/employeeSchedule.dart';
 import 'package:flutter/material.dart';
 
@@ -13,8 +14,7 @@ class HandleScheduleScreen extends StatelessWidget {
   }
 }
 
-class HandleScheduleAppbar extends StatelessWidget
-    implements PreferredSizeWidget {
+class HandleScheduleAppbar extends StatelessWidget implements PreferredSizeWidget {
   const HandleScheduleAppbar({super.key});
 
   @override
@@ -44,14 +44,80 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
   String? selectedUser = 'All Users';
   String? selectedProject = 'All Projects';
 
-  final List<String> users = ['All Users', 'User 1', 'User 2', 'User 3'];
-  final List<String> projects = ['All Projects', 'Project A', 'Project B'];
+  List<String> users = [];
+  List<dynamic> projects = [];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/get-all-projects',
+        body: {"filter": "Active"},
+      );
+      if (response['success'] == true) {
+        setAllProjects(response['projects']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading projects error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
+  Future<void> getAllEmployees() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/get-all-project-employee',
+        body: {"id": selectedProject},
+      );
+      if (response['success'] == true) {
+        users = response['users'];
+        print(response['users']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading all user project error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
+  void setAllProjects(List<dynamic> projects) {
+    setState(() {
+      this.projects = projects;
+    });
+  }
+
+  void setSelectedProject(project) {
+    setState(() {
+      selectedProject = project;
+    });
+    getAllEmployees();
+  }
 
   @override
   Widget build(BuildContext context) {
-    bool hasProject = selectedProject != 'All Projects';
-    bool isSelectionValid =
-        selectedUser != 'All Users' && selectedProject != 'All Projects';
+    // bool hasProject = selectedProject != 'All Projects';
+    bool isSelectionValid = selectedUser != 'All Users' && selectedProject != 'All Projects';
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -59,8 +125,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
         children: [
           Card(
             elevation: 5,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -69,20 +134,12 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      icon: Icon(Icons.add,
-                          color:
-                              isSelectionValid ? Colors.white : Colors.white70),
+                      icon: Icon(Icons.add, color: isSelectionValid ? Colors.white : Colors.white70),
                       label: Text('Add Schedule',
-                          style: TextStyle(
-                              color: isSelectionValid
-                                  ? Colors.white
-                                  : Colors.white70)),
+                          style: TextStyle(color: isSelectionValid ? Colors.white : Colors.white70)),
                       style: ElevatedButton.styleFrom(
-                        disabledBackgroundColor:
-                            const Color.fromARGB(255, 80, 160, 170)
-                                .withOpacity(0.8),
-                        backgroundColor:
-                            const Color.fromARGB(255, 80, 160, 170),
+                        disabledBackgroundColor: const Color.fromARGB(255, 80, 160, 170).withOpacity(0.8),
+                        backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -98,48 +155,52 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                   const SizedBox(height: 5),
                   Row(children: [
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: selectedProject,
-                        items: projects
-                            .map((project) => DropdownMenuItem(
-                                  value: project,
-                                  child: Text(
-                                    project,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                      color: Color.fromARGB(255, 27, 72, 78),
-                                    ),
-                                  ),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          if (selectedProject != value!) {
-                            setState(() {
-                              selectedProject = value;
-                              selectedUser = 'All Users';
-                            });
-                          }
-                        },
+                      child: DropdownButtonFormField<int>(
+                        value: null,
+                        items: projects.isNotEmpty
+                            ? projects
+                                .map((project) => DropdownMenuItem<int>(
+                                      value: project['projectId'],
+                                      child: Text(
+                                        project['projectName'],
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          color: Color.fromARGB(255, 27, 72, 78),
+                                        ),
+                                      ),
+                                    ))
+                                .toList()
+                            : null,
+                        onChanged: projects.isNotEmpty
+                            ? (value) {
+                                setState(() {
+                                  setSelectedProject(value);
+                                });
+                              }
+                            : null,
+                        hint: Text(
+                          projects.isNotEmpty ? 'Select a Project' : 'No Projects Available',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Color.fromARGB(255, 27, 72, 78),
+                          ),
+                        ),
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: const Color.fromARGB(255, 80, 160, 170)
-                              .withOpacity(0.3),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 15, vertical: 10),
+                          fillColor: const Color.fromARGB(255, 80, 160, 170).withOpacity(0.3),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                           border: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -148,46 +209,37 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                     const SizedBox(width: 5),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: selectedUser,
-                        items: users
-                            .map((user) => DropdownMenuItem(
-                                  value: user,
-                                  child: Text(
-                                    user,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                      color: Color.fromARGB(255, 27, 72, 78),
-                                    ),
-                                  ),
-                                ))
-                            .toList(),
-                        onChanged: (hasProject)
+                        value: null,
+                        items: users.isNotEmpty ? null : null,
+                        onChanged: users.isNotEmpty
                             ? (value) {
                                 setState(() {
-                                  selectedUser = value!;
+                                  selectedUser = value;
                                 });
                               }
                             : null,
+                        hint: Text(
+                          users.isNotEmpty ? 'Select a User' : 'No Users Available',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Color.fromARGB(255, 27, 72, 78),
+                          ),
+                        ),
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: const Color.fromARGB(255, 80, 160, 170)
-                              .withOpacity(0.3),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 15, vertical: 10),
+                          fillColor: const Color.fromARGB(255, 80, 160, 170).withOpacity(0.3),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                           border: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.transparent),
+                            borderSide: const BorderSide(color: Colors.transparent),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -198,8 +250,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
               ),
             ),
           ),
-          if (!isSelectionValid)
-            const Center(child: Text('No user or project selected.')),
+          if (!isSelectionValid) const Center(child: Text('No user or project selected.')),
           if (isSelectionValid) const Expanded(child: EmployeeSchedule()),
         ],
       ),
@@ -288,8 +339,7 @@ class _AddScheduleModalState extends State<AddScheduleModal> {
                   lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
                 );
                 if (selectedDate != null) {
-                  dateController.text =
-                      selectedDate.toLocal().toString().split(' ')[0];
+                  dateController.text = selectedDate.toLocal().toString().split(' ')[0];
                 }
               },
             ),

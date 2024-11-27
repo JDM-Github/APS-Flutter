@@ -1,9 +1,8 @@
+import 'package:first_project/flutter_session.dart';
 import 'package:first_project/handle_request.dart';
 import 'package:first_project/screens/employee_dashboard.dart';
 import 'package:first_project/screens/admin_dashboard.dart';
 import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,33 +17,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _checkLoginStatus();
-  // }
-
-  // void _checkLoginStatus() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   bool? loggedIn = prefs.getBool('isLoggedIn');
-  //   if (loggedIn != null && loggedIn) {
-  //     if (mounted) {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => const DashboardScreen(),
-  //         ),
-  //       );
-  //     }
-  //   }
-  // }
-
   void _login() async {
     final String email = _emailController.text;
     final String password = _passwordController.text;
 
     if (email == 'admin' && password == 'admin') {
       if (mounted) {
+        Config.set('isAdmin', true);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -54,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       return;
     }
+
     RequestHandler requestHandler = RequestHandler();
     try {
       Map<String, dynamic> response = await requestHandler.handleRequest(
@@ -64,7 +44,11 @@ class _LoginScreenState extends State<LoginScreen> {
           'password': password,
         },
       );
+
       if (response['success'] == true) {
+        Config.set('isLoggedIn', true);
+        Config.set('user', response['user']);
+
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -86,11 +70,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-
-  // void _logout() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.setBool('isLoggedIn', false);
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -128,14 +107,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      !_isPasswordVisible
-                          ? Icons.visibility_off
-                          : Icons.visibility, // Toggle icon
+                      !_isPasswordVisible ? Icons.visibility_off : Icons.visibility, // Toggle icon
                     ),
                     onPressed: () {
                       setState(() {
-                        _isPasswordVisible =
-                            !_isPasswordVisible; // Toggle visibility state
+                        _isPasswordVisible = !_isPasswordVisible; // Toggle visibility state
                       });
                     },
                   ),
@@ -146,11 +122,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 80, 160, 170),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 150, vertical: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 150, vertical: 15),
                 ),
-                child: const Text('Login',
-                    style: TextStyle(fontSize: 16, color: Colors.white)),
+                child: const Text('Login', style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
               const SizedBox(height: 20),
               Row(
@@ -158,9 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   TextButton(
                     onPressed: () {},
-                    child: const Text('Forgot Password?',
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 80, 160, 170))),
+                    child: const Text('Forgot Password?', style: TextStyle(color: Color.fromARGB(255, 80, 160, 170))),
                   ),
                 ],
               ),

@@ -1,4 +1,6 @@
+import 'package:first_project/handle_request.dart';
 import 'package:first_project/screens/component/manageProject.dart';
+import 'package:first_project/screens/component/viewEmployee.dart';
 import 'package:flutter/material.dart';
 
 class ManageProjectScreen extends StatelessWidget {
@@ -13,8 +15,7 @@ class ManageProjectScreen extends StatelessWidget {
   }
 }
 
-class ManageProjectAppbar extends StatelessWidget
-    implements PreferredSizeWidget {
+class ManageProjectAppbar extends StatelessWidget implements PreferredSizeWidget {
   const ManageProjectAppbar({super.key});
 
   @override
@@ -41,23 +42,54 @@ class ManageProjectBody extends StatefulWidget {
 }
 
 class _ManageProjectBodyState extends State<ManageProjectBody> {
-  String selectedProject = 'All Projects';
-  String selectedFilter = 'Daily';
+  String selectedFilter = 'Active';
   String selectedProjectType = 'Emergency Repair';
-  String selectedProjectManager = 'John Doe';
 
-  final List<String> projectList = ['All Projects', 'Project A', 'Project B'];
-  final List<String> filterList = ['Daily', 'Monthly', 'Yearly'];
-  final List<String> projectTypeList = [
-    'Emergency Repair',
-    'Maintenance',
-    'New Installation'
-  ];
-  final List<String> projectManagers = [
-    'John Doe',
-    'Jane Smith',
-    'Emily Johnson'
-  ];
+  final List<String> projectTypeList = ['Emergency Repair', 'Maintenance', 'New Installation'];
+  List<dynamic> projectManagers = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'users/get-all-manager',
+        body: {},
+      );
+      setState(() {
+        isLoading = false;
+      });
+      if (response['success'] == true) {
+        setAllProjectManager(response['managers'] ?? {});
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading project managers error'),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
+  void setAllProjectManager(List<dynamic> users) {
+    setState(() {
+      projectManagers = users;
+    });
+  }
 
   void _updateFilter(String filter) {
     setState(() {
@@ -65,7 +97,16 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
     });
   }
 
+  final TextEditingController _projectNameController = TextEditingController();
+  final TextEditingController _projectLocationController = TextEditingController();
+  final TextEditingController _startDateController = TextEditingController();
+  final TextEditingController _endDateController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
   void _showAddProjectModal() {
+    String selectedProjectManager = projectManagers.isNotEmpty ? projectManagers[0]['id'].toString() : '';
+    dynamic userSelected = projectManagers.isNotEmpty ? projectManagers[0] : null;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -91,6 +132,7 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: _projectNameController,
                     decoration: const InputDecoration(
                       labelText: 'Project Name',
                       border: OutlineInputBorder(),
@@ -98,6 +140,7 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: _projectLocationController,
                     decoration: const InputDecoration(
                       labelText: 'Project Location',
                       border: OutlineInputBorder(),
@@ -106,15 +149,19 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: selectedProjectManager,
-                    items: projectManagers
-                        .map((manager) => DropdownMenuItem(
-                              value: manager,
-                              child: Text(manager),
-                            ))
-                        .toList(),
+                    items: projectManagers.isNotEmpty
+                        ? projectManagers
+                            .map<DropdownMenuItem<String>>((manager) => DropdownMenuItem<String>(
+                                  value: manager['id'].toString(),
+                                  child: Text('${manager['firstName']} ${manager['lastName']}'),
+                                ))
+                            .toList()
+                        : [],
                     onChanged: (value) {
                       setState(() {
                         selectedProjectManager = value!;
+                        userSelected = projectManagers[projectManagers
+                            .indexWhere((manager) => manager['id'].toString() == selectedProjectManager)];
                       });
                     },
                     decoration: const InputDecoration(
@@ -122,7 +169,24 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: selectedProjectManager.isNotEmpty
+                          ? () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (builder) => ViewEmployeeScreen(user: userSelected)));
+                            }
+                          : null,
+                      onLongPress: null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                      ),
+                      child: const Text('View Project Manager', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   DropdownButtonFormField<String>(
                     value: selectedProjectType,
                     items: projectTypeList
@@ -143,24 +207,59 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: _startDateController,
+                    readOnly: true,
                     decoration: const InputDecoration(
                       labelText: 'Start Date',
                       hintText: 'YYYY-MM-DD',
+                      suffixIcon: Icon(Icons.calendar_today),
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.datetime,
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                      );
+                      if (pickedDate != null) {
+                        _startDateController.text = pickedDate.toLocal().toString().split(' ')[0];
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: _endDateController,
+                    readOnly: true,
                     decoration: const InputDecoration(
                       labelText: 'Target End Date',
                       hintText: 'YYYY-MM-DD',
+                      suffixIcon: Icon(Icons.calendar_today),
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.datetime,
+                    onTap: () async {
+                      if (_startDateController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please select a Start Date first.')),
+                        );
+                        return;
+                      }
+                      DateTime? startDate = DateTime.tryParse(_startDateController.text);
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: startDate ?? DateTime.now(),
+                        firstDate: startDate ?? DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                      );
+
+                      if (pickedDate != null) {
+                        _endDateController.text = pickedDate.toLocal().toString().split(' ')[0];
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: _descriptionController,
                     decoration: const InputDecoration(
                       labelText: 'Project Description',
                       border: OutlineInputBorder(),
@@ -172,13 +271,12 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        _submitProject(selectedProjectManager);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(255, 80, 160, 170),
+                        backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                       ),
-                      child: const Text('Add Project'),
+                      child: const Text('Add Project', style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -190,6 +288,58 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
     );
   }
 
+  void _submitProject(String selectedProjectManager) async {
+    if (_projectNameController.text.isEmpty ||
+        _projectLocationController.text.isEmpty ||
+        selectedProjectManager.isEmpty ||
+        selectedProjectType.isEmpty ||
+        _startDateController.text.isEmpty ||
+        _endDateController.text.isEmpty ||
+        _descriptionController.text.isEmpty) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/create-project',
+        body: {
+          'projectManager': selectedProjectManager,
+          'projectName': _projectNameController.text,
+          'projectLocation': _projectLocationController.text,
+          'projectType': selectedProjectType,
+          'projectDescription': _descriptionController.text,
+          'startDate': _startDateController.text,
+          'endDate': _endDateController.text,
+        },
+      );
+      if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Project added successfully')),
+        );
+        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ManageProjectScreen()),
+        );
+        return;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'] ?? 'Adding employee error')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -199,8 +349,7 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
         children: [
           Card(
             elevation: 5,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             child: Padding(
               padding: const EdgeInsets.all(4.0),
               child: Column(
@@ -214,11 +363,9 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                         child: ElevatedButton.icon(
                           onPressed: _showAddProjectModal,
                           icon: const Icon(Icons.add, color: Colors.white),
-                          label: const Text('Add Project',
-                              style: TextStyle(color: Colors.white)),
+                          label: const Text('Add Project', style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(255, 80, 160, 170),
+                            backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -246,7 +393,7 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
               ),
             ),
           ),
-          const Expanded(child: ManageProjectTable()),
+          Expanded(child: ManageProjectTable(selectedFilter)),
         ],
       ),
     );
@@ -289,9 +436,7 @@ class _FilterToggleButtonState extends State<FilterToggleButton> {
           child: Text(
             widget.label,
             style: TextStyle(
-              color: widget.isSelected
-                  ? Colors.white
-                  : const Color.fromARGB(255, 27, 72, 78),
+              color: widget.isSelected ? Colors.white : const Color.fromARGB(255, 27, 72, 78),
               fontWeight: FontWeight.bold,
             ),
           ),

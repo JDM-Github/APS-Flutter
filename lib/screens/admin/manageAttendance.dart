@@ -1,4 +1,6 @@
-import 'package:first_project/screens/component/employeeAttendance.dart';
+import 'package:first_project/handle_request.dart';
+import 'package:first_project/screens/component/all_employee_attendance.dart';
+// import 'package:first_project/screens/component/employeeAttendance.dart';
 import 'package:flutter/material.dart';
 
 class ManageAttendanceScreen extends StatelessWidget {
@@ -6,15 +8,14 @@ class ManageAttendanceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: ManageAttendanceAppbar(),
+    return Scaffold(
+      appBar: const ManageAttendanceAppbar(),
       body: ManageAttendanceBody(),
     );
   }
 }
 
-class ManageAttendanceAppbar extends StatelessWidget
-    implements PreferredSizeWidget {
+class ManageAttendanceAppbar extends StatelessWidget implements PreferredSizeWidget {
   const ManageAttendanceAppbar({super.key});
 
   @override
@@ -41,12 +42,111 @@ class ManageAttendanceBody extends StatefulWidget {
 }
 
 class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
-  String selectedFilter = 'Daily';
+  String selectedFilter = 'Present';
 
-  void _updateFilter(String filter) {
+  List<dynamic> projects = [];
+  bool isLoading = true;
+  String selectedProjectId = "";
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  Future<void> onProjectChanged(String projectId) async {
+    setState(() {
+      selectedProjectId = projectId;
+    });
+    await initEmployees();
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/get-all-projects',
+        body: {"filter": "Active"},
+      );
+      setState(() {
+        isLoading = false;
+      });
+      if (response['success'] == true) {
+        setAllProjects(response['projects']);
+        await initEmployees();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading projects error'),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
+  Future<void> setAllProjects(List<dynamic> projects) async {
+    setState(() {
+      this.projects = projects;
+    });
+  }
+
+  List<dynamic> employees = [];
+  Future<void> initEmployees() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = {};
+      response = await requestHandler.handleRequest(
+        context,
+        'attendance/getAllEmployeesAttendance',
+        body: {
+          'id': selectedProjectId,
+          'isPresent': false,
+          'isAbsent': false,
+          'isOnLeave': false,
+          'notDecided': true,
+        },
+      );
+      setState(() {
+        isLoading = false;
+      });
+      if (response['success'] == true) {
+        setAllEmployee(response['users']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading employee error'),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
+  void setAllEmployee(List<dynamic> users) {
+    setState(() {
+      employees = users;
+    });
+  }
+
+  Future<void> _updateFilter(String filter) async {
     setState(() {
       selectedFilter = filter;
     });
+    await initEmployees();
   }
 
   @override
@@ -58,8 +158,7 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
         children: [
           Card(
               elevation: 5,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
                 child: Column(
@@ -69,10 +168,10 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ProjectDropdown(),
+                          ProjectDropdown(projects, onProjectChanged: onProjectChanged),
                         ],
                       ),
                     ),
@@ -82,13 +181,11 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: ElevatedButton.icon(
-                            onPressed: _showAddAttendanceModal,
+                            onPressed: () => {_showAddAttendanceModal(employees)},
                             icon: const Icon(Icons.add, color: Colors.white),
-                            label: const Text('Add Attendance',
-                                style: TextStyle(color: Colors.white)),
+                            label: const Text('Add Attendance', style: TextStyle(color: Colors.white)),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 80, 160, 170),
+                              backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -96,32 +193,51 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                           ),
                         ),
                         FilterToggleButton(
-                          label: 'Daily',
-                          isSelected: selectedFilter == 'Daily',
-                          onPressed: () => _updateFilter('Daily'),
+                          label: 'Present',
+                          isSelected: selectedFilter == 'Present',
+                          onPressed: () => _updateFilter('Present'),
                         ),
                         FilterToggleButton(
-                          label: 'Monthly',
-                          isSelected: selectedFilter == 'Monthly',
-                          onPressed: () => _updateFilter('Monthly'),
+                          label: 'Absent',
+                          isSelected: selectedFilter == 'Absent',
+                          onPressed: () => _updateFilter('Absent'),
                         ),
                         FilterToggleButton(
-                          label: 'Yearly',
-                          isSelected: selectedFilter == 'Yearly',
-                          onPressed: () => _updateFilter('Yearly'),
+                          label: 'Leave',
+                          isSelected: selectedFilter == 'Leave',
+                          onPressed: () => _updateFilter('Leave'),
                         ),
                       ],
                     ),
                   ],
                 ),
               )),
-          const Expanded(child: EmployeeAttendance()),
+          Expanded(child: AllEmployeeAttended(projectId: selectedProjectId, selectedFilter: selectedFilter)),
         ],
       ),
     );
   }
 
-  void _showAddAttendanceModal() {
+  // TimeOfDay? _timeIn;
+  // TimeOfDay? _timeOut;
+
+  // Future<void> _pickTime(BuildContext context, bool isTimeIn) async {
+  //   final TimeOfDay? picked = await showTimePicker(
+  //     context: context,
+  //     initialTime: TimeOfDay.now(),
+  //   );
+  //   if (picked != null) {
+  //     setState(() {
+  //       if (isTimeIn) {
+  //         _timeIn = picked;
+  //       } else {
+  //         _timeOut = picked;
+  //       }
+  //     });
+  //   }
+  // }
+
+  void _showAddAttendanceModal(List<dynamic> employees) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -129,65 +245,130 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
+        String? selectedEmployeeId;
+
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Add Attendance',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Employee Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Time In',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.access_time),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Time Out',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.access_time),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Place',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Add Attendance',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    child: const Text('Add to Attendance'),
-                  ),
-                ),
-              ],
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Select Employee',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: employees.map<DropdownMenuItem<String>>((employee) {
+                        return DropdownMenuItem<String>(
+                          value: employee['id'].toString(),
+                          child: Text(
+                            '${employee['firstName']} ${employee['lastName']}',
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) async {
+                        setState(() {
+                          selectedEmployeeId = value;
+                        });
+
+                        RequestHandler requestHandler = RequestHandler();
+                        try {
+                          Map<String, dynamic> response = await requestHandler.handleRequest(
+                            context,
+                            'attendance/createAttendance',
+                            body: {"userId": value, "isPresent": true},
+                          );
+                          setState(() {
+                            isLoading = false;
+                          });
+                          if (response['success'] == true) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(response['message'] ?? 'Attendance updated successfully.'),
+                              ),
+                            );
+                          } else {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(response['message'] ?? 'Adding attendance error'),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('An error occurred: $e')),
+                          );
+                        }
+                      },
+                      hint: const Text('Choose an Employee'),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Time In',
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.access_time),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Time Out',
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.access_time),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Place',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (selectedEmployeeId != null) {
+                            Navigator.pop(context);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please select an employee'),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                        ),
+                        child: const Text(
+                          'Add to Attendance',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -232,9 +413,7 @@ class _FilterToggleButtonState extends State<FilterToggleButton> {
           child: Text(
             widget.label,
             style: TextStyle(
-              color: widget.isSelected
-                  ? Colors.white
-                  : const Color.fromARGB(255, 27, 72, 78),
+              color: widget.isSelected ? Colors.white : const Color.fromARGB(255, 27, 72, 78),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -245,7 +424,10 @@ class _FilterToggleButtonState extends State<FilterToggleButton> {
 }
 
 class ProjectDropdown extends StatelessWidget {
-  const ProjectDropdown({super.key});
+  final List<dynamic> projects;
+  final Function(String) onProjectChanged;
+
+  const ProjectDropdown(this.projects, {required this.onProjectChanged, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -253,8 +435,7 @@ class ProjectDropdown extends StatelessWidget {
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color.fromARGB(255, 80, 160, 170).withOpacity(0.3),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
         border: OutlineInputBorder(
           borderSide: const BorderSide(color: Colors.transparent),
           borderRadius: BorderRadius.circular(10),
@@ -268,21 +449,17 @@ class ProjectDropdown extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
       ),
-      items: const [
-        DropdownMenuItem(
-          value: 'Project 1',
-          child: Text('Project 1'),
-        ),
-        DropdownMenuItem(
-          value: 'Project 2',
-          child: Text('Project 2'),
-        ),
-        DropdownMenuItem(
-          value: 'Project 3',
-          child: Text('Project 3'),
-        ),
-      ],
-      onChanged: (value) {},
+      items: projects.map<DropdownMenuItem<String>>((project) {
+        return DropdownMenuItem<String>(
+          value: project['id'].toString(),
+          child: Text(project['projectName'] ?? 'Unnamed Project'),
+        );
+      }).toList(),
+      onChanged: (value) {
+        if (value != null) {
+          onProjectChanged(value);
+        }
+      },
       hint: const Text(
         'Select a Project',
         style: TextStyle(

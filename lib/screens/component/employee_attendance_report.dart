@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-class AttendanceReportTable extends StatelessWidget {
-  const AttendanceReportTable({super.key});
+class EmployeeAttendanceReportTable extends StatelessWidget {
+  final Map<String, dynamic> users;
+  const EmployeeAttendanceReportTable(this.users, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +53,7 @@ class AttendanceReportTable extends StatelessWidget {
                         DataColumn(
                             label: SizedBox(
                           width: MediaQuery.of(context).size.width * 0.25,
-                          child: const SizedBox(child: Text('NAME')),
+                          child: const SizedBox(child: Text('DAY')),
                         )),
                         DataColumn(
                             label: SizedBox(
@@ -74,7 +75,7 @@ class AttendanceReportTable extends StatelessWidget {
                         DataRow(
                           cells: [
                             DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.25, child: const Text('John Dave Pega'))),
+                                width: MediaQuery.of(context).size.width * 0.25, child: const Text('2024-06-16'))),
                             DataCell(
                                 SizedBox(width: MediaQuery.of(context).size.width * 0.15, child: const Text('23'))),
                             DataCell(
@@ -83,7 +84,6 @@ class AttendanceReportTable extends StatelessWidget {
                                 SizedBox(width: MediaQuery.of(context).size.width * 0.15, child: const Text('12'))),
                           ],
                         ),
-                        // Add more rows as needed
                       ],
                     ),
                   ),
