@@ -61,7 +61,7 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
       Map<String, dynamic> response = await requestHandler.handleRequest(
         context,
         'users/get-all-manager',
-        body: {},
+        body: {"doesNotHaveProject": true},
       );
       setState(() {
         isLoading = false;

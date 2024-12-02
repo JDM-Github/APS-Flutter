@@ -34,13 +34,12 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
       Map<String, dynamic> response = {};
       response = await requestHandler.handleRequest(
         context,
-        'attendance/getAllEmployeesAttendance',
+        'attendance/getAllEmployeesAttendanceVar',
         body: {
           'id': widget.projectId,
           'isPresent': widget.selectedFilter == 'Present',
           'isAbsent': widget.selectedFilter == 'Absent',
           'isOnLeave': widget.selectedFilter == 'Leave',
-          'notDecided': false,
         },
       );
       setState(() {
@@ -48,6 +47,7 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
       });
       if (response['success'] == true) {
         setAllEmployee(response['users']);
+        print(response['users']);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

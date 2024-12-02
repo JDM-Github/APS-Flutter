@@ -32,7 +32,7 @@ class AdminAppbar extends StatelessWidget implements PreferredSizeWidget {
         'Admin Dashboard',
         style: TextStyle(
           color: Colors.white,
-          fontSize: 16, // Reduced font size
+          fontSize: 16,
         ),
       ),
       automaticallyImplyLeading: false,

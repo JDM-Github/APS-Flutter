@@ -41,10 +41,10 @@ class HandleScheduleBody extends StatefulWidget {
 }
 
 class _HandleScheduleBodyState extends State<HandleScheduleBody> {
-  String? selectedUser = 'All Users';
+  String? selectedUser;
   String? selectedProject = 'All Projects';
 
-  List<String> users = [];
+  List<dynamic> users = [];
   List<dynamic> projects = [];
   @override
   void initState() {
@@ -77,6 +77,9 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
   }
 
   Future<void> getAllEmployees() async {
+    setState(() {
+      selectedUser = null;
+    });
     RequestHandler requestHandler = RequestHandler();
     try {
       Map<String, dynamic> response = await requestHandler.handleRequest(
@@ -85,8 +88,9 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
         body: {"id": selectedProject},
       );
       if (response['success'] == true) {
-        users = response['users'];
-        print(response['users']);
+        setState(() {
+          users = response['users'];
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -95,9 +99,10 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('An error occurred: $e')),
+      // );
+      print("$e");
     }
   }
 
@@ -117,7 +122,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
   @override
   Widget build(BuildContext context) {
     // bool hasProject = selectedProject != 'All Projects';
-    bool isSelectionValid = selectedUser != 'All Users' && selectedProject != 'All Projects';
+    bool isSelectionValid = selectedUser != null && selectedProject != 'All Projects';
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -155,12 +160,12 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                   const SizedBox(height: 5),
                   Row(children: [
                     Expanded(
-                      child: DropdownButtonFormField<int>(
+                      child: DropdownButtonFormField<String>(
                         value: null,
                         items: projects.isNotEmpty
                             ? projects
-                                .map((project) => DropdownMenuItem<int>(
-                                      value: project['projectId'],
+                                .map((project) => DropdownMenuItem<String>(
+                                      value: project['id'] as String,
                                       child: Text(
                                         project['projectName'],
                                         style: const TextStyle(
@@ -171,7 +176,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                                       ),
                                     ))
                                 .toList()
-                            : null,
+                            : [],
                         onChanged: projects.isNotEmpty
                             ? (value) {
                                 setState(() {
@@ -209,12 +214,27 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                     const SizedBox(width: 5),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: null,
-                        items: users.isNotEmpty ? null : null,
+                        value: selectedUser,
+                        items: users.isNotEmpty
+                            ? users
+                                .map((user) => DropdownMenuItem<String>(
+                                      value: user['id'],
+                                      child: Text(
+                                        '${user['firstName']} ${user['lastName']}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          color: Color.fromARGB(255, 27, 72, 78),
+                                        ),
+                                      ),
+                                    ))
+                                .toList()
+                            : [],
                         onChanged: users.isNotEmpty
-                            ? (value) {
+                            ? (String? value) {
                                 setState(() {
                                   selectedUser = value;
+                                  print(value);
                                 });
                               }
                             : null,
@@ -251,10 +271,38 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
             ),
           ),
           if (!isSelectionValid) const Center(child: Text('No user or project selected.')),
-          if (isSelectionValid) const Expanded(child: EmployeeSchedule()),
+          if (isSelectionValid) Expanded(child: EmployeeSchedule(selectedUser!)),
         ],
       ),
     );
+  }
+
+  Future<void> addSchedule(userId, date, timeFrom, timeTo, description) async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'attendance/createSchedule',
+        body: {"userId": userId, "date": date, "timeFrom": timeFrom, "timeTo": timeTo, "description": description},
+      );
+      if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Schedule created successfully.'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Adding attendance error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
   }
 
   void _openAddScheduleModal(BuildContext context) {
@@ -268,7 +316,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
         return AddScheduleModal(
           selectedUser: selectedUser!,
           onSave: (date, from, to, description) {
-            // print('Schedule saved: $date, $from, $to, $description');
+            addSchedule(selectedUser, date, from, to, description);
           },
         );
       },
@@ -287,7 +335,7 @@ class AddScheduleModal extends StatefulWidget {
   });
 
   @override
-  _AddScheduleModalState createState() => _AddScheduleModalState();
+  State<AddScheduleModal> createState() => _AddScheduleModalState();
 }
 
 class _AddScheduleModalState extends State<AddScheduleModal> {
@@ -404,7 +452,7 @@ class _AddScheduleModalState extends State<AddScheduleModal> {
                     toController.text,
                     descriptionController.text,
                   );
-                  Navigator.pop(context); // Close the bottom sheet
+                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 80, 160, 170),

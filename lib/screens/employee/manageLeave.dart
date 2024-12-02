@@ -11,18 +11,9 @@ class ManageLeavesScreen extends StatefulWidget {
 
 class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
   TextEditingController startDate = new TextEditingController();
-  final List<String> _employees = [
-    'John Doe',
-    'Jane Smith',
-    'Michael Johnson',
-    'Emily Davis'
-  ];
+  final List<String> _employees = ['John Doe', 'Jane Smith', 'Michael Johnson', 'Emily Davis'];
 
-  final List<String> _leaveTypes = [
-    'Sick Leave',
-    'Casual Leave',
-    'Annual Leave'
-  ];
+  final List<String> _leaveTypes = ['Sick Leave', 'Casual Leave', 'Annual Leave'];
   final List<Map<String, dynamic>> _leaveRequests = [];
 
   String? _selectedEmployee;
@@ -38,8 +29,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
     super.dispose();
   }
 
-  Future<void> _pickDate(
-      BuildContext context, TextEditingController controller) async {
+  Future<void> _pickDate(BuildContext context, TextEditingController controller) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -47,8 +37,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
       lastDate: DateTime(2100),
     );
     if (picked != null) {
-      controller.text =
-          '${picked.toLocal()}'.split(' ')[0]; // Formatting date as YYYY-MM-DD
+      controller.text = '${picked.toLocal()}'.split(' ')[0]; // Formatting date as YYYY-MM-DD
     }
   }
 
@@ -161,8 +150,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                     ),
-                    child: const Text('Add Leave Request',
-                        style: TextStyle(color: Colors.white)),
+                    child: const Text('Add Leave Request', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -183,12 +171,8 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
         actions: [
           IconButton(
               icon: const Icon(Icons.list_alt),
-              onPressed: () => {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (builder) => const LeaveRequestsScreen()))
-                  },
+              onPressed: () =>
+                  {Navigator.push(context, MaterialPageRoute(builder: (builder) => const LeaveRequestsScreen()))},
               tooltip: 'View Leave Requests'),
           IconButton(
             icon: const Icon(Icons.add),

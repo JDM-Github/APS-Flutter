@@ -41,7 +41,6 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
         isLoading = false;
       });
       if (response['success'] == true) {
-        print(response['users']);
         setAllEmployee(response['users']);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -76,10 +75,11 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Header Section
             Container(
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: const BoxDecoration(
-                color: const Color.fromARGB(255, 80, 160, 170),
+                color: Color.fromARGB(255, 80, 160, 170),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12.0)),
               ),
               child: const Center(
@@ -93,156 +93,122 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                 ),
               ),
             ),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: SizedBox(
-                    width: constraints.maxWidth,
-                    child: isLoading
+            // Content Section
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: isLoading
+                    ? const Center(
+                        child: Text(
+                          "Loading all employees",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      )
+                    : employees.isEmpty
                         ? const Center(
                             child: Text(
-                              "Loading all employees",
-                              style: TextStyle(fontSize: 12), // Smaller font size
+                              "There are no employees",
+                              style: TextStyle(fontSize: 12),
                             ),
                           )
-                        : employees.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  "There are no employees",
-                                  style: TextStyle(fontSize: 12), // Smaller font size
+                        : DataTable(
+                            columnSpacing: 2,
+                            headingRowHeight: 30,
+                            headingTextStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: Color.fromARGB(255, 80, 160, 170),
+                            ),
+                            dataTextStyle: const TextStyle(fontSize: 12),
+                            headingRowColor: WidgetStateProperty.all(
+                              const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
+                            ),
+                            columns: [
+                              DataColumn(
+                                label: SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.4,
+                                  child: Text(
+                                    'Name',
+                                    style: TextStyle(fontSize: 12),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                              )
-                            : DataTable(
-                                columnSpacing: 2,
-                                headingRowHeight: 30,
-                                headingTextStyle: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12, // Adjusted font size
-                                  color: Color.fromARGB(255, 80, 160, 170),
+                              ),
+                              DataColumn(
+                                label: SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.1,
+                                  child: Text(
+                                    'View',
+                                    style: TextStyle(fontSize: 12),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                                dataTextStyle: const TextStyle(fontSize: 12), // Adjusted font size
-                                headingRowColor: WidgetStateProperty.all(
-                                  const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'Action',
+                                  style: TextStyle(fontSize: 12),
+                                  textAlign: TextAlign.center,
                                 ),
-                                columns: [
-                                  DataColumn(
-                                    label: SizedBox(
-                                      width: MediaQuery.of(context).size.width * 0.20,
-                                      child: const Center(
-                                        child: Text(
-                                          'Name',
-                                          style: TextStyle(fontSize: 12), // Smaller font size
-                                        ),
+                              ),
+                            ],
+                            rows: employees.map<DataRow>((user) {
+                              final isDeactivated = user['is_deactivated'] ?? false;
+                              return DataRow(
+                                cells: [
+                                  DataCell(
+                                    Text(
+                                      "${user['lastName']}, ${user['firstName']}",
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          PageRouteBuilder(
+                                            pageBuilder: (context, animation, secondaryAnimation) {
+                                              return ViewEmployeeScreen(user: user);
+                                            },
+                                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                              const begin = Offset(1.0, 0.0);
+                                              const end = Offset.zero;
+                                              const curve = Curves.easeInOut;
+                                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                              var offsetAnimation = animation.drive(tween);
+                                              return SlideTransition(position: offsetAnimation, child: child);
+                                            },
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                                      ),
+                                      child: const Text(
+                                        'View',
+                                        style: TextStyle(color: Colors.white),
                                       ),
                                     ),
                                   ),
-                                  DataColumn(
-                                    label: SizedBox(
-                                      width: MediaQuery.of(context).size.width * 0.20,
-                                      child: const Center(
-                                        child: Text(
-                                          'View',
-                                          style: TextStyle(fontSize: 12), // Smaller font size
-                                        ),
+                                  DataCell(
+                                    ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isDeactivated ? Colors.green : Colors.red,
                                       ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: SizedBox(
-                                      width: MediaQuery.of(context).size.width * 0.20,
-                                      child: const Center(
-                                        child: Text(
-                                          'Action',
-                                          style: TextStyle(fontSize: 12), // Smaller font size
-                                        ),
+                                      child: Text(
+                                        isDeactivated ? "ACTIVATE" : "DEACTIVATE",
+                                        style: const TextStyle(color: Colors.white),
                                       ),
                                     ),
                                   ),
                                 ],
-                                rows: employees.map<DataRow>((user) {
-                                  final isDeactivated = user['is_deactivated'] ?? false;
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(
-                                        SizedBox(
-                                          width: MediaQuery.of(context).size.width * 0.4,
-                                          child: Text(
-                                            "${user['lastName']}, ${user['firstName']}",
-                                            style: const TextStyle(fontSize: 12), // Smaller font size
-                                          ),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        SizedBox(
-                                          width: MediaQuery.of(context).size.width * 0.20,
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                PageRouteBuilder(
-                                                  pageBuilder: (context, animation, secondaryAnimation) {
-                                                    return ViewEmployeeScreen(user: user);
-                                                  },
-                                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                                    const begin = Offset(1.0, 0.0);
-                                                    const end = Offset.zero;
-                                                    const curve = Curves.easeInOut;
-                                                    var tween =
-                                                        Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                                    var offsetAnimation = animation.drive(tween);
-                                                    return SlideTransition(position: offsetAnimation, child: child);
-                                                  },
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              padding: const EdgeInsets.symmetric(vertical: 8), // Adjusted padding
-                                              backgroundColor: const Color.fromARGB(255, 80, 160, 170),
-                                            ),
-                                            child: const Text(
-                                              'View',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12, // Smaller font size
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        SizedBox(
-                                          width: MediaQuery.of(context).size.width * 0.20,
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              // Handle Deactivate/Activate button click
-                                              // toggleUserStatus(user);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              padding: const EdgeInsets.symmetric(vertical: 8), // Adjusted padding
-                                              backgroundColor: widget.projectId != "" || isDeactivated
-                                                  ? (widget.projectId != "" ? Colors.red : Colors.green)
-                                                  : Colors.red,
-                                            ),
-                                            child: Text(
-                                              widget.projectId == ""
-                                                  ? (isDeactivated ? "ACTIVATE" : "DEACTIVATE")
-                                                  : "REMOVE",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12, // Smaller font size
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
-                  ),
-                );
-              },
+                              );
+                            }).toList(),
+                          ),
+              ),
             ),
           ],
         ),

@@ -10,7 +10,7 @@ class AddEmployee extends StatefulWidget {
   });
 
   @override
-  _AddEmployeeModalState createState() => _AddEmployeeModalState();
+  State<AddEmployee> createState() => _AddEmployeeModalState();
 }
 
 class _AddEmployeeModalState extends State<AddEmployee> {
@@ -41,6 +41,7 @@ class _AddEmployeeModalState extends State<AddEmployee> {
   ];
   List<String> selectedSkills = [];
   bool isProjectManager = false;
+  bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) {
@@ -114,11 +115,21 @@ class _AddEmployeeModalState extends State<AddEmployee> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: passwordController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureText ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureText,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
@@ -166,26 +177,6 @@ class _AddEmployeeModalState extends State<AddEmployee> {
                     },
                   );
                 }).toList(),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Text(
-                    'Is Project Manager',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Switch(
-                    value: isProjectManager,
-                    onChanged: (bool value) {
-                      setState(() {
-                        isProjectManager = value;
-                      });
-                    },
-                  ),
-                ],
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -267,7 +258,6 @@ void showAddEmployeeModal(BuildContext context, Widget page) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Employee added successfully')),
               );
-              Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => page),

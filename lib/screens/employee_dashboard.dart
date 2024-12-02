@@ -1,8 +1,10 @@
 import 'package:first_project/flutter_session.dart';
+import 'package:first_project/handle_request.dart';
 import 'package:first_project/screens/component/employeeSchedule.dart';
 import 'package:first_project/screens/component/projectInfo.dart';
 import 'package:first_project/screens/component/userInfo.dart';
 import 'package:first_project/screens/employee/attendanceReport.dart';
+import 'package:first_project/screens/employee/employeeAttendance.dart';
 import 'package:first_project/screens/employee/manageLeave.dart';
 import 'package:first_project/screens/component/notification.dart';
 import 'package:first_project/screens/employee/profile.dart';
@@ -87,9 +89,9 @@ class DashboardBody extends StatelessWidget {
             profileImage: users['profileImage'],
           ),
           const ProjectInfoSection(),
-          const NavigatorEmployee(),
-          const Expanded(
-            child: EmployeeSchedule(),
+          NavigatorEmployee(users),
+          Expanded(
+            child: EmployeeSchedule(users['id']),
           ),
         ],
       ),
@@ -97,12 +99,23 @@ class DashboardBody extends StatelessWidget {
   }
 }
 
-class NavigatorEmployee extends StatelessWidget {
-  const NavigatorEmployee({super.key});
+class NavigatorEmployee extends StatefulWidget {
+  final dynamic users;
+  const NavigatorEmployee(this.users, {super.key});
+
+  @override
+  State<StatefulWidget> createState() => _NavigatorEmployee();
+}
+
+class _NavigatorEmployee extends State<NavigatorEmployee> {
+  final List<String> _leaveTypes = ['Sick Leave', 'Casual Leave', 'Annual Leave'];
+  final TextEditingController reasonController = TextEditingController();
+  final TextEditingController startDateController = TextEditingController();
+  final TextEditingController endDateController = TextEditingController();
+  String selectedLeaveType = 'Sick Leave';
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic> users = Config.get('user');
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -121,37 +134,167 @@ class NavigatorEmployee extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              buildExpandedActionButton(
-                label: 'View Attendance',
-                icon: Icons.check_circle_outline,
-                onPressed: () {
-                  Navigator.push(
-                      context, MaterialPageRoute(builder: (builder) => EmployeeViewAttendanceScreen(users: users)));
-                },
-              ),
-              buildExpandedActionButton(
-                label: 'Manage Leaves',
-                icon: Icons.event_available,
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (builder) => const ManageLeavesScreen()));
-                },
-              ),
+              if (widget.users['isManager'])
+                buildExpandedActionButton(
+                  label: 'View Attendance',
+                  icon: Icons.check_circle_outline,
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (builder) => ProjectManagerAttendance(users: widget.users)));
+                  },
+                ),
+              if (!widget.users['isManager'])
+                buildExpandedActionButton(
+                  label: 'Check Attendance',
+                  icon: Icons.check_circle_outline,
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (builder) => EmployeeAttendanceViewScreen(users: widget.users)));
+                  },
+                ),
+              if (widget.users['isManager'])
+                buildExpandedActionButton(
+                  label: 'Manage Leaves',
+                  icon: Icons.event_available,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (builder) => const ManageLeavesScreen()),
+                    );
+                  },
+                ),
+              if (!widget.users['isManager'])
+                buildExpandedActionButton(
+                  label: 'Request Leave',
+                  icon: Icons.event_available,
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      ),
+                      builder: (BuildContext context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Request Leave',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              TextField(
+                                controller: reasonController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Leave Reason',
+                                  border: OutlineInputBorder(),
+                                ),
+                                maxLines: 3,
+                              ),
+                              const SizedBox(height: 20),
+                              DropdownButtonFormField<String>(
+                                value: selectedLeaveType,
+                                decoration: const InputDecoration(
+                                  labelText: 'Leave Type',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    selectedLeaveType = newValue;
+                                  }
+                                },
+                                items: _leaveTypes.map((leaveType) {
+                                  return DropdownMenuItem<String>(
+                                    value: leaveType,
+                                    child: Text(leaveType),
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 20),
+                              TextField(
+                                controller: startDateController,
+                                readOnly: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'Start Date',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onTap: () async {
+                                  DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                                  );
+                                  if (pickedDate != null) {
+                                    startDateController.text = "${pickedDate.toLocal()}".split(' ')[0];
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              TextField(
+                                controller: endDateController,
+                                readOnly: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'End Date',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onTap: () async {
+                                  DateTime? startDate = DateTime.tryParse(startDateController.text);
+                                  DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: startDate ?? DateTime.now(),
+                                    firstDate: startDate ?? DateTime.now(),
+                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                                  );
+                                  if (pickedDate != null) {
+                                    endDateController.text = "${pickedDate.toLocal()}".split(' ')[0];
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (widget.users['projectManagerId'] == null) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Employee has not assigned in a project.')),
+                                    );
+                                    return;
+                                  }
+                                  addRequestLeave(
+                                    widget.users['id'],
+                                    reasonController.text,
+                                    selectedLeaveType,
+                                    startDateController.text,
+                                    endDateController.text,
+                                  );
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Leave request submitted')),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                                ),
+                                child: const Text('Submit Request', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
             ],
           ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // buildExpandedActionButton(
-              //   label: 'View Schedule',
-              //   icon: Icons.schedule,
-              //   onPressed: () {
-              //     Navigator.push(
-              //         context,
-              //         MaterialPageRoute(
-              //             builder: (builder) => ViewScheduleScreen()));
-              //   },
-              // ),
               buildExpandedActionButton(
                 label: 'Attendance Report',
                 icon: Icons.report,
@@ -159,28 +302,72 @@ class NavigatorEmployee extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (builder) => const AttendanceReportScreen()));
                 },
               ),
-              buildExpandedActionButton(
-                label: 'View Project',
-                icon: Icons.folder,
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (builder) => ProjectDetailsScreen(project: {
-                                'projectDescription': 'Develop a mobile app for e-commerce with Flutter.',
-                                'Users': {'firstName': 'John', 'lastName': 'Doe'},
-                                'projectLocation': 'New York, USA',
-                                'startDate': DateTime(2023, 1, 15).toString(),
-                                'endDate': DateTime(2024, 1, 15).toString(),
-                                'projectType': 'Software Development',
-                              })));
-                },
-              ),
+              if (widget.users['isManager'])
+                buildExpandedActionButton(
+                  label: 'View Project',
+                  icon: Icons.folder,
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (builder) => ProjectDetailsScreen(project: {
+                                  'projectDescription': 'Develop a mobile app for e-commerce with Flutter.',
+                                  'Users': {'firstName': 'John', 'lastName': 'Doe'},
+                                  'projectLocation': 'New York, USA',
+                                  'startDate': DateTime(2023, 1, 15).toString(),
+                                  'endDate': DateTime(2024, 1, 15).toString(),
+                                  'projectType': 'Software Development',
+                                })));
+                  },
+                ),
+              if (!widget.users['isManager'])
+                buildExpandedActionButton(
+                  label: 'Projects',
+                  icon: Icons.folder,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Unimplemented yet.')),
+                    );
+                  },
+                ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  void addRequestLeave(userId, reason, leaveType, startDate, endDate) async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'users/requestLeave',
+        body: {'userId': userId, 'reason': reason, 'leaveType': leaveType, 'startDate': startDate, 'endDate': endDate},
+      );
+      if (response['success'] == true) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Successfully send a Leave Request.')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response['message'] ?? 'Sendning leave request error')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error occurred: $e')),
+        );
+      }
+    }
   }
 
   Widget buildExpandedActionButton({
@@ -197,7 +384,7 @@ class NavigatorEmployee extends StatelessWidget {
           icon: Icon(icon, size: 20, color: Colors.white),
           label: Text(
             label,
-            style: const TextStyle(fontSize: 14, color: Colors.white),
+            style: const TextStyle(fontSize: 12, color: Colors.white),
           ),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
@@ -212,4 +399,3 @@ class NavigatorEmployee extends StatelessWidget {
     );
   }
 }
-

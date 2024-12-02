@@ -8,7 +8,7 @@ class RequestHandler {
   final bool development;
   RequestHandler({this.development = true});
   String get baseUrl {
-    return development ? 'http://192.168.89.58:8888' : 'https://instantmine.netlify.app';
+    return development ? 'http://192.168.100.151:8888' : 'https://instantmine.netlify.app';
   }
 
   Future<Map<String, dynamic>> handleRequest(

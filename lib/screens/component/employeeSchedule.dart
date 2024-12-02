@@ -1,7 +1,55 @@
+import 'package:first_project/handle_request.dart';
 import 'package:flutter/material.dart';
 
-class EmployeeSchedule extends StatelessWidget {
-  const EmployeeSchedule({super.key});
+class EmployeeSchedule extends StatefulWidget {
+  final String selectedUser;
+  const EmployeeSchedule(this.selectedUser, {super.key});
+
+  @override
+  State<EmployeeSchedule> createState() => _HandleScheduleBodyState();
+}
+
+class _HandleScheduleBodyState extends State<EmployeeSchedule> {
+  List<dynamic> schedules = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  @override
+  void didUpdateWidget(covariant EmployeeSchedule oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedUser != widget.selectedUser) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => init());
+    }
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'attendance/getAllSchedule',
+        body: {"userId": widget.selectedUser},
+      );
+      if (response['success'] == true) {
+        setState(() => schedules = response['schedules']);
+        print(response['schedules']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading schedules error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +92,7 @@ class EmployeeSchedule extends StatelessWidget {
                       ),
                       dataTextStyle: const TextStyle(fontSize: 14),
                       headingRowColor: WidgetStateProperty.all(
-                        const Color.fromARGB(255, 80, 160, 170)
-                            .withOpacity(0.1),
+                        const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
                       ),
                       columnSpacing: 0,
                       columns: [
@@ -74,31 +121,29 @@ class EmployeeSchedule extends StatelessWidget {
                           ),
                         ),
                       ],
-                      rows: [
-                        DataRow(
+                      rows: schedules.map((attendance) {
+                        String formattedDate = DateTime.parse(attendance['date']).toLocal().toString().split(' ')[0];
+                        String formattedTimeIn = attendance['timeIn'];
+                        String formattedTimeOut = attendance['timeOut'];
+
+                        return DataRow(
                           cells: [
+                            DataCell(
+                                SizedBox(width: MediaQuery.of(context).size.width * 0.2, child: Text(formattedDate))),
+                            DataCell(
+                                SizedBox(width: MediaQuery.of(context).size.width * 0.2, child: Text(formattedTimeIn))),
                             DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.2,
-                                child: const Text('06/16/2004'))),
-                            DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.2,
-                                child: const Text('8:00AM'))),
-                            DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.2,
-                                child: const Text('9:00AM'))),
+                                width: MediaQuery.of(context).size.width * 0.2, child: Text(formattedTimeOut))),
                             DataCell(
                               SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.20,
                                 child: ElevatedButton(
                                   onPressed: () {
-                                    showDescriptionDialog(
-                                        context, "This is the description text. Pass your description here.");
+                                    showDescriptionDialog(context, attendance['description']);
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
-                                    backgroundColor:
-                                        const Color.fromARGB(255, 80, 160, 170),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                                   ),
                                   child: const Text(
                                     'VIEW',
@@ -108,8 +153,8 @@ class EmployeeSchedule extends StatelessWidget {
                               ),
                             ),
                           ],
-                        ),
-                      ],
+                        );
+                      }).toList(),
                     ),
                   ),
                 );
@@ -140,6 +185,4 @@ class EmployeeSchedule extends StatelessWidget {
       },
     );
   }
-
-
 }

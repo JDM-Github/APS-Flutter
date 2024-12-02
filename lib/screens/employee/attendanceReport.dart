@@ -7,13 +7,12 @@ class AttendanceReportScreen extends StatefulWidget {
   const AttendanceReportScreen({super.key});
 
   @override
-  _AttendanceReportScreenState createState() => _AttendanceReportScreenState();
+  State<AttendanceReportScreen> createState() => _AttendanceReportScreenState();
 }
 
 class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
-  // Dropdown filters
-  String selectedMonth = 'January';
-  String selectedYear = '2024';
+  String selectedMonth = '';
+  String selectedYear = '';
   final List<String> months = [
     'January',
     'February',
@@ -26,18 +25,20 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
     'September',
     'October',
     'November',
-    'December'
+    'December',
   ];
-  final List<String> years = ['2024', '2023', '2022', '2021', '2020'];
+  final List<String> years = [];
 
-  // Sample data for attendance
-  final List<Map<String, dynamic>> employeeData = [
-    {'name': 'John Dave', 'present': 20, 'absent': 5, 'leave': 3},
-    {'name': 'Jane Smith', 'present': 18, 'absent': 7, 'leave': 3},
-    {'name': 'Michael Brown', 'present': 22, 'absent': 4, 'leave': 2},
-    {'name': 'Alice Johnson', 'present': 15, 'absent': 10, 'leave': 3},
-    {'name': 'Robert Wilson', 'present': 25, 'absent': 2, 'leave': 1},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    selectedMonth = months[now.month - 1];
+    selectedYear = now.year.toString();
+    for (int i = 0; i < 5; i++) {
+      years.add((now.year - i).toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,10 +70,10 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                 });
               },
             ),
-            if (users['isManager']) const AttendanceReportTable(),
-            if (!users['isManager']) EmployeeAttendanceReportTable(users),
+            if (users['isManager']) AttendanceReportTable(users, selectedMonth, selectedYear),
+            if (!users['isManager']) EmployeeAttendanceReportTable(users, selectedMonth, selectedYear),
             const SizedBox(height: 20),
-            SaveAsCsvButton(employeeData: employeeData, month: selectedMonth, year: selectedYear),
+            SaveAsCsvButton(month: selectedMonth, year: selectedYear),
           ],
         ),
       ),
@@ -107,8 +108,8 @@ class AttendanceFilter extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.0),
           gradient: LinearGradient(
             colors: [
-              const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1), // Start color
-              const Color.fromARGB(255, 50, 130, 150).withOpacity(0.1), // End color
+              const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
+              const Color.fromARGB(255, 50, 130, 150).withOpacity(0.1),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -119,25 +120,25 @@ class AttendanceFilter extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Card(
-                  child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 80, 160, 170),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                    child: Text(
-                  'Project Name',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                )),
-              )),
-              const SizedBox(height: 5),
+              // Card(
+              //     child: Container(
+              //   width: double.infinity,
+              //   padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+              //   decoration: BoxDecoration(
+              //     color: const Color.fromARGB(255, 80, 160, 170),
+              //     borderRadius: BorderRadius.circular(10),
+              //   ),
+              //   child: const Center(
+              //       child: Text(
+              //     'Project Name',
+              //     style: TextStyle(
+              //       fontWeight: FontWeight.bold,
+              //       fontSize: 16,
+              //       color: Colors.white,
+              //     ),
+              //   )),
+              // )),
+              // const SizedBox(height: 5),
               Row(
                 children: [
                   Expanded(
@@ -226,13 +227,11 @@ class AttendanceFilter extends StatelessWidget {
 }
 
 class SaveAsCsvButton extends StatelessWidget {
-  final List<Map<String, dynamic>> employeeData;
   final String month;
   final String year;
 
   const SaveAsCsvButton({
     super.key,
-    required this.employeeData,
     required this.month,
     required this.year,
   });

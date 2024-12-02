@@ -108,10 +108,6 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
         'attendance/getAllEmployeesAttendance',
         body: {
           'id': selectedProjectId,
-          'isPresent': false,
-          'isAbsent': false,
-          'isOnLeave': false,
-          'notDecided': true,
         },
       );
       setState(() {
@@ -218,24 +214,10 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
     );
   }
 
-  // TimeOfDay? _timeIn;
-  // TimeOfDay? _timeOut;
-
-  // Future<void> _pickTime(BuildContext context, bool isTimeIn) async {
-  //   final TimeOfDay? picked = await showTimePicker(
-  //     context: context,
-  //     initialTime: TimeOfDay.now(),
-  //   );
-  //   if (picked != null) {
-  //     setState(() {
-  //       if (isTimeIn) {
-  //         _timeIn = picked;
-  //       } else {
-  //         _timeOut = picked;
-  //       }
-  //     });
-  //   }
-  // }
+  final TextEditingController _timeInController = TextEditingController();
+  final TextEditingController _timeOutController = TextEditingController();
+  final TextEditingController _placeController = TextEditingController();
+  String status = 'Present';
 
   void _showAddAttendanceModal(List<dynamic> employees) {
     showModalBottomSheet(
@@ -282,45 +264,24 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                         setState(() {
                           selectedEmployeeId = value;
                         });
-
-                        RequestHandler requestHandler = RequestHandler();
-                        try {
-                          Map<String, dynamic> response = await requestHandler.handleRequest(
-                            context,
-                            'attendance/createAttendance',
-                            body: {"userId": value, "isPresent": true},
-                          );
-                          setState(() {
-                            isLoading = false;
-                          });
-                          if (response['success'] == true) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(response['message'] ?? 'Attendance updated successfully.'),
-                              ),
-                            );
-                          } else {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(response['message'] ?? 'Adding attendance error'),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          setState(() {
-                            isLoading = false;
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('An error occurred: $e')),
-                          );
-                        }
                       },
                       hint: const Text('Choose an Employee'),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
+                      readOnly: true,
+                      controller: _timeInController,
+                      onTap: () async {
+                        TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          setState(() {
+                            _timeInController.text = pickedTime.format(context);
+                          });
+                        }
+                      },
                       decoration: const InputDecoration(
                         labelText: 'Time In',
                         border: OutlineInputBorder(),
@@ -329,6 +290,19 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
+                      readOnly: true,
+                      controller: _timeOutController,
+                      onTap: () async {
+                        TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          setState(() {
+                            _timeOutController.text = pickedTime.format(context);
+                          });
+                        }
+                      },
                       decoration: const InputDecoration(
                         labelText: 'Time Out',
                         border: OutlineInputBorder(),
@@ -337,10 +311,30 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
+                      controller: _placeController,
                       decoration: const InputDecoration(
                         labelText: 'Place',
                         border: OutlineInputBorder(),
                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: status,
+                      decoration: const InputDecoration(
+                        labelText: 'Status',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (newValue) {
+                        setState(() {
+                          status = newValue!;
+                        });
+                      },
+                      items: ['Present', 'Absent', 'Leave'].map((String statusOption) {
+                        return DropdownMenuItem<String>(
+                          value: statusOption,
+                          child: Text(statusOption),
+                        );
+                      }).toList(),
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
@@ -349,7 +343,10 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                         onPressed: () {
                           if (selectedEmployeeId != null) {
                             Navigator.pop(context);
+                            setAttendance(selectedEmployeeId, _timeInController.text, _timeOutController.text,
+                                _placeController.text, status);
                           } else {
+                            Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Please select an employee'),
@@ -374,6 +371,40 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
         );
       },
     );
+  }
+
+  Future<void> setAttendance(userId, timeIn, timeOut, place, status) async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'attendance/createAttendance',
+        body: {"userId": userId, "timeIn": timeIn, "timeOut": timeOut, "place": place, "status": status},
+      );
+      setState(() {
+        isLoading = false;
+      });
+      if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Attendance created successfully.'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Adding attendance error'),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
   }
 }
 
