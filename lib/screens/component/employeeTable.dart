@@ -61,7 +61,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
 
   void setAllEmployee(List<dynamic> users) {
     setState(() {
-      employees = users + users + users + users;
+      employees = users;
     });
   }
 
