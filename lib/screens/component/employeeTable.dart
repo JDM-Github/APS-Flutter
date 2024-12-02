@@ -61,7 +61,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
 
   void setAllEmployee(List<dynamic> users) {
     setState(() {
-      employees = users;
+      employees = users + users + users + users;
     });
   }
 
@@ -86,7 +86,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                 child: Text(
                   'List of all Employee',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -186,9 +186,12 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                         padding: const EdgeInsets.symmetric(vertical: 8),
                                         backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                                       ),
-                                      child: const Text(
-                                        'View',
-                                        style: TextStyle(color: Colors.white),
+                                      child: SizedBox(
+                                        width: 30,
+                                        child: const Text(
+                                          'View',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
                                       ),
                                     ),
                                   ),
