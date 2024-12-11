@@ -24,7 +24,7 @@ class ProjectManagerAttendanceAppbar extends StatelessWidget implements Preferre
     return AppBar(
       title: const Text(
         'Manage Attendance',
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(color: Colors.white, fontSize: 16),
       ),
       foregroundColor: Colors.white,
       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
@@ -48,13 +48,16 @@ class _ProjectManagerAttendanceBodyState extends State<ProjectManagerAttendanceB
 
   List<dynamic> projects = [];
   bool isLoading = true;
-  late String selectedProjectId;
+  String selectedProjectId = "0";
+  int updator = 0;
 
   @override
   void initState() {
     super.initState();
-    selectedProjectId = widget.users['projectId'];
-    WidgetsBinding.instance.addPostFrameCallback((_) => init());
+    if (widget.users['projectId'] != null) {
+      selectedProjectId = widget.users['projectId'];
+      WidgetsBinding.instance.addPostFrameCallback((_) => init());
+    }
   }
 
   Future<void> init() async {
@@ -155,15 +158,43 @@ class _ProjectManagerAttendanceBodyState extends State<ProjectManagerAttendanceB
                 padding: const EdgeInsets.all(4.0),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    //   child: ElevatedButton.icon(
+                    //     onPressed: () => {_showAddAttendanceModal(employees)},
+                    //     icon: const Icon(Icons.add, color: Colors.white),
+                    //     label: const Text('Add Attendance', style: TextStyle(color: Colors.white)),
+                    //     style: ElevatedButton.styleFrom(
+                    //       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                    //       shape: RoundedRectangleBorder(
+                    //         borderRadius: BorderRadius.circular(8),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: ElevatedButton.icon(
+                          onPressed: () => {_showAddAttendanceModal(employees)},
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          label: const Text('Add Attendance', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: ElevatedButton.icon(
-                            onPressed: () => {_showAddAttendanceModal(employees)},
-                            icon: const Icon(Icons.add, color: Colors.white),
-                            label: const Text('Add Attendance', style: TextStyle(color: Colors.white)),
+                            onPressed: () => {_setAllAttendance(employees)},
+                            icon: const Icon(Icons.select_all, color: Colors.white),
+                            label:
+                                const Text('Set All Attendance', style: TextStyle(color: Colors.white, fontSize: 12)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                               shape: RoundedRectangleBorder(
@@ -172,27 +203,31 @@ class _ProjectManagerAttendanceBodyState extends State<ProjectManagerAttendanceB
                             ),
                           ),
                         ),
-                        FilterToggleButton(
-                          label: 'Present',
-                          isSelected: selectedFilter == 'Present',
-                          onPressed: () => _updateFilter('Present'),
-                        ),
-                        FilterToggleButton(
-                          label: 'Absent',
-                          isSelected: selectedFilter == 'Absent',
-                          onPressed: () => _updateFilter('Absent'),
-                        ),
-                        FilterToggleButton(
-                          label: 'Leave',
-                          isSelected: selectedFilter == 'Leave',
-                          onPressed: () => _updateFilter('Leave'),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ]),
+                    Row(children: [
+                      FilterToggleButton(
+                        label: 'Present',
+                        isSelected: selectedFilter == 'Present',
+                        onPressed: () => _updateFilter('Present'),
+                      ),
+                      FilterToggleButton(
+                        label: 'Absent',
+                        isSelected: selectedFilter == 'Absent',
+                        onPressed: () => _updateFilter('Absent'),
+                      ),
+                      FilterToggleButton(
+                        label: 'Leave',
+                        isSelected: selectedFilter == 'Leave',
+                        onPressed: () => _updateFilter('Leave'),
+                      ),
+                    ]),
                   ],
                 ),
               )),
-          Expanded(child: AllEmployeeAttended(projectId: selectedProjectId, selectedFilter: selectedFilter)),
+          Expanded(
+              child:
+                  AllEmployeeAttended(projectId: selectedProjectId, selectedFilter: selectedFilter, updator: updator)),
         ],
       ),
     );
@@ -273,27 +308,27 @@ class _ProjectManagerAttendanceBodyState extends State<ProjectManagerAttendanceB
                       ),
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      readOnly: true,
-                      controller: _timeOutController,
-                      onTap: () async {
-                        TimeOfDay? pickedTime = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-                        if (pickedTime != null) {
-                          setState(() {
-                            _timeOutController.text = pickedTime.format(context);
-                          });
-                        }
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Time Out',
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.access_time),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                    // TextFormField(
+                    //   readOnly: true,
+                    //   controller: _timeOutController,
+                    //   onTap: () async {
+                    //     TimeOfDay? pickedTime = await showTimePicker(
+                    //       context: context,
+                    //       initialTime: TimeOfDay.now(),
+                    //     );
+                    //     if (pickedTime != null) {
+                    //       setState(() {
+                    //         _timeOutController.text = pickedTime.format(context);
+                    //       });
+                    //     }
+                    //   },
+                    //   decoration: const InputDecoration(
+                    //     labelText: 'Time Out',
+                    //     border: OutlineInputBorder(),
+                    //     suffixIcon: Icon(Icons.access_time),
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 16),
                     TextFormField(
                       controller: _placeController,
                       decoration: const InputDecoration(
@@ -363,7 +398,7 @@ class _ProjectManagerAttendanceBodyState extends State<ProjectManagerAttendanceB
       Map<String, dynamic> response = await requestHandler.handleRequest(
         context,
         'attendance/createAttendance',
-        body: {"userId": userId, "timeIn": timeIn, "timeOut": timeOut, "place": place, "status": status},
+        body: {"userId": userId, "timeIn": timeIn, "place": place, "status": status},
       );
       setState(() {
         isLoading = false;
@@ -390,6 +425,8 @@ class _ProjectManagerAttendanceBodyState extends State<ProjectManagerAttendanceB
       );
     }
   }
+
+  _setAllAttendance(List employees) {}
 }
 
 class FilterToggleButton extends StatefulWidget {

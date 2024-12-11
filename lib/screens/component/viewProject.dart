@@ -32,6 +32,10 @@ class ProjectDetailsScreen extends StatelessWidget {
                     children: [
                       _buildDetailRow(
                           'Project Manager', '${project['Users']['firstName']} ${project['Users']['lastName']}'),
+                      _buildDetailRow('Client Name', project['clientName']),
+                      _buildDetailRow('Client Email', project['clientEmail']),
+                      _buildDetailRow('Client Type', project['clientType']),
+                      _buildDetailRow('Budget', project['budget']),
                       _buildDetailRow('Location', project['projectLocation']),
                       _buildDetailRow('Start Date', project['startDate']),
                       _buildDetailRow('End Date', project['endDate']),

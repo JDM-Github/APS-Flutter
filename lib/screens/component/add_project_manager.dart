@@ -1,19 +1,19 @@
 import 'package:first_project/handle_request.dart';
 import 'package:flutter/material.dart';
 
-class AddEmployee extends StatefulWidget {
+class AddProjectManager extends StatefulWidget {
   final Function(String, String, String, String, String, String, String, List, bool, String) onSave;
 
-  const AddEmployee({
+  const AddProjectManager({
     super.key,
     required this.onSave,
   });
 
   @override
-  State<AddEmployee> createState() => _AddEmployeeModalState();
+  State<AddProjectManager> createState() => _AddProjectManagerModalState();
 }
 
-class _AddEmployeeModalState extends State<AddEmployee> {
+class _AddProjectManagerModalState extends State<AddProjectManager> {
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController middleInitialController = TextEditingController();
@@ -65,7 +65,7 @@ class _AddEmployeeModalState extends State<AddEmployee> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Add Employee',
+                'Add Project Manager',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -161,19 +161,9 @@ class _AddEmployeeModalState extends State<AddEmployee> {
                 ),
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedPosition,
-                items: positions
-                    .map((position) => DropdownMenuItem(
-                          value: position,
-                          child: Text(position),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedPosition = value;
-                  });
-                },
+              TextFormField(
+                initialValue: 'PROJECT MANAGER',
+                readOnly: true,
                 decoration: const InputDecoration(
                   labelText: 'Position',
                   border: OutlineInputBorder(),
@@ -236,7 +226,7 @@ class _AddEmployeeModalState extends State<AddEmployee> {
                         selectedDepartment,
                         selectedSkills,
                         isProjectManager,
-                        selectedPosition!);
+                        "PROJECT MANAGER");
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
@@ -256,7 +246,7 @@ class _AddEmployeeModalState extends State<AddEmployee> {
   }
 }
 
-void showAddEmployeeModal(BuildContext context, Widget page) {
+void showAddProjectManagerModal(BuildContext context, Widget page) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -264,7 +254,7 @@ void showAddEmployeeModal(BuildContext context, Widget page) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (BuildContext context) {
-      return AddEmployee(
+      return AddProjectManager(
         onSave: (firstName, lastName, middleInitial, selectedGender, email, password, selectedDepartment,
             selectedSkills, isProjectManager, selectedPosition) async {
           RequestHandler requestHandler = RequestHandler();
@@ -283,7 +273,7 @@ void showAddEmployeeModal(BuildContext context, Widget page) {
                 'skills': selectedSkills,
                 'isManager': isProjectManager,
                 'position': selectedPosition,
-                'isProjectManager': false
+                'isProjectManager': true
               },
             );
             if (response['success'] == true) {

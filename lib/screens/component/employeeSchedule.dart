@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 class EmployeeSchedule extends StatefulWidget {
   final String selectedUser;
-  const EmployeeSchedule(this.selectedUser, {super.key});
+  final int updator;
+  const EmployeeSchedule(this.selectedUser, {super.key, required this.updator});
 
   @override
   State<EmployeeSchedule> createState() => _HandleScheduleBodyState();
@@ -21,7 +22,7 @@ class _HandleScheduleBodyState extends State<EmployeeSchedule> {
   @override
   void didUpdateWidget(covariant EmployeeSchedule oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedUser != widget.selectedUser) {
+    if (oldWidget.selectedUser != widget.selectedUser || oldWidget.updator != widget.updator) {
       WidgetsBinding.instance.addPostFrameCallback((_) => init());
     }
   }
@@ -36,7 +37,6 @@ class _HandleScheduleBodyState extends State<EmployeeSchedule> {
       );
       if (response['success'] == true) {
         setState(() => schedules = response['schedules']);
-        print(response['schedules']);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -71,7 +71,7 @@ class _HandleScheduleBodyState extends State<EmployeeSchedule> {
                 child: Text(
                   'Employee Schedule',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -90,7 +90,7 @@ class _HandleScheduleBodyState extends State<EmployeeSchedule> {
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 80, 160, 170),
                       ),
-                      dataTextStyle: const TextStyle(fontSize: 14),
+                      dataTextStyle: const TextStyle(fontSize: 12),
                       headingRowColor: WidgetStateProperty.all(
                         const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
                       ),
@@ -99,25 +99,25 @@ class _HandleScheduleBodyState extends State<EmployeeSchedule> {
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.1,
-                            child: const Center(child: Text('Date')),
+                            child: const Center(child: Text('Date', style: TextStyle(fontSize: 12))),
                           ),
                         ),
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.1,
-                            child: const Center(child: Text('From')),
+                            child: const Center(child: Text('From', style: TextStyle(fontSize: 12))),
                           ),
                         ),
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.1,
-                            child: const Center(child: Text('To')),
+                            child: const Center(child: Text('To', style: TextStyle(fontSize: 12))),
                           ),
                         ),
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.2,
-                            child: const Center(child: Text('Description')),
+                            child: const Center(child: Text('Description', style: TextStyle(fontSize: 12))),
                           ),
                         ),
                       ],
@@ -147,7 +147,7 @@ class _HandleScheduleBodyState extends State<EmployeeSchedule> {
                                   ),
                                   child: const Text(
                                     'VIEW',
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(color: Colors.white, fontSize: 12),
                                   ),
                                 ),
                               ),

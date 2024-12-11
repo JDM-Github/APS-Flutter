@@ -1,4 +1,5 @@
 import 'package:first_project/handle_request.dart';
+import 'package:first_project/screens/component/add_project_manager.dart';
 import 'package:first_project/screens/component/manageProject.dart';
 import 'package:first_project/screens/component/viewEmployee.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class ManageProjectAppbar extends StatelessWidget implements PreferredSizeWidget
     return AppBar(
       title: const Text(
         'Manage Project',
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(color: Colors.white, fontSize: 16),
       ),
       foregroundColor: Colors.white,
       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
@@ -44,8 +45,10 @@ class ManageProjectBody extends StatefulWidget {
 class _ManageProjectBodyState extends State<ManageProjectBody> {
   String selectedFilter = 'Active';
   String selectedProjectType = 'Emergency Repair';
+  String selectedClient = "RESIDENTIAL";
 
   final List<String> projectTypeList = ['Emergency Repair', 'Maintenance', 'New Installation'];
+  final List<String> projectClient = ['RESIDENTIAL', 'GOVERNMENT', 'COMMERCIAL', 'PUBLIC SECTOR'];
   List<dynamic> projectManagers = [];
   bool isLoading = true;
 
@@ -102,6 +105,9 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _budgetController = TextEditingController();
+  final TextEditingController _clientNameController = TextEditingController();
+  final TextEditingController _clientEmailController = TextEditingController();
 
   void _showAddProjectModal() {
     String selectedProjectManager = projectManagers.isNotEmpty ? projectManagers[0]['id'].toString() : '';
@@ -126,7 +132,7 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                   const Text(
                     'Add Project',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -135,6 +141,49 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                     controller: _projectNameController,
                     decoration: const InputDecoration(
                       labelText: 'Project Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _budgetController,
+                    decoration: const InputDecoration(
+                      labelText: 'Budget',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _clientNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Client Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _clientEmailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Client Email',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedClient,
+                    items: projectClient
+                        .map((type) => DropdownMenuItem(
+                              value: type,
+                              child: Text(type),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedClient = value!;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Project Type',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -291,6 +340,9 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
   void _submitProject(String selectedProjectManager) async {
     if (_projectNameController.text.isEmpty ||
         _projectLocationController.text.isEmpty ||
+        _clientNameController.text.isEmpty ||
+        _clientEmailController.text.isEmpty ||
+        _budgetController.text.isEmpty ||
         selectedProjectManager.isEmpty ||
         selectedProjectType.isEmpty ||
         _startDateController.text.isEmpty ||
@@ -312,10 +364,14 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
           'projectManager': selectedProjectManager,
           'projectName': _projectNameController.text,
           'projectLocation': _projectLocationController.text,
+          'budget': _budgetController.text,
           'projectType': selectedProjectType,
           'projectDescription': _descriptionController.text,
           'startDate': _startDateController.text,
           'endDate': _endDateController.text,
+          'clientName': _clientNameController.text,
+          'clientEmail': _clientEmailController.text,
+          'clientType': selectedClient
         },
       );
       if (response['success'] == true) {
@@ -355,6 +411,28 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: ElevatedButton.icon(
+                          // onPressed: () => {_showAddAttendanceModal(employees)},
+
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          label: const Text('Add Project Manager', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {
+                            showAddProjectManagerModal(context, ManageProjectScreen());
+                          },
+                        ),
+                      ),
+                    ),
+                  ]),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -363,7 +441,7 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                         child: ElevatedButton.icon(
                           onPressed: _showAddProjectModal,
                           icon: const Icon(Icons.add, color: Colors.white),
-                          label: const Text('Add Project', style: TextStyle(color: Colors.white)),
+                          label: const Text('Add Project', style: TextStyle(color: Colors.white, fontSize: 12)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                             shape: RoundedRectangleBorder(
@@ -436,9 +514,9 @@ class _FilterToggleButtonState extends State<FilterToggleButton> {
           child: Text(
             widget.label,
             style: TextStyle(
-              color: widget.isSelected ? Colors.white : const Color.fromARGB(255, 27, 72, 78),
-              fontWeight: FontWeight.bold,
-            ),
+                color: widget.isSelected ? Colors.white : const Color.fromARGB(255, 27, 72, 78),
+                fontWeight: FontWeight.bold,
+                fontSize: 12),
           ),
         ),
       ),

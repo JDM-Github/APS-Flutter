@@ -45,7 +45,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
     Map<String, dynamic> users = Config.get('user');
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Attendance Report"),
+        title: const Text("Attendance Report", style: TextStyle(fontSize: 16)),
         backgroundColor: const Color.fromARGB(255, 80, 160, 170),
         foregroundColor: Colors.white,
         elevation: 5,
@@ -151,7 +151,7 @@ class AttendanceFilter extends StatelessWidget {
                             month,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                              fontSize: 12,
                               color: Color.fromARGB(255, 27, 72, 78),
                             ),
                           ),
@@ -189,7 +189,7 @@ class AttendanceFilter extends StatelessWidget {
                               year,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: Color.fromARGB(255, 27, 72, 78),
                               ),
                             ),

@@ -23,7 +23,7 @@ class ManageAttendanceAppbar extends StatelessWidget implements PreferredSizeWid
     return AppBar(
       title: const Text(
         'Manage Attendance',
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(color: Colors.white, fontSize: 16),
       ),
       foregroundColor: Colors.white,
       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
@@ -47,6 +47,7 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
   List<dynamic> projects = [];
   bool isLoading = true;
   String selectedProjectId = "";
+  int updator = 0;
 
   @override
   void initState() {
@@ -171,15 +172,29 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                         ],
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: ElevatedButton.icon(
+                          onPressed: () => {_showAddAttendanceModal(employees)},
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          label: const Text('Add Attendance', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: ElevatedButton.icon(
-                            onPressed: () => {_showAddAttendanceModal(employees)},
-                            icon: const Icon(Icons.add, color: Colors.white),
-                            label: const Text('Add Attendance', style: TextStyle(color: Colors.white)),
+                            onPressed: () => {_setAllAttendance(employees)},
+                            icon: const Icon(Icons.select_all, color: Colors.white),
+                            label:
+                                const Text('Set All Attendance', style: TextStyle(color: Colors.white, fontSize: 12)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                               shape: RoundedRectangleBorder(
@@ -188,6 +203,10 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                             ),
                           ),
                         ),
+                      ),
+                    ]),
+                    Row(
+                      children: [
                         FilterToggleButton(
                           label: 'Present',
                           isSelected: selectedFilter == 'Present',
@@ -204,11 +223,13 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                           onPressed: () => _updateFilter('Leave'),
                         ),
                       ],
-                    ),
+                    )
                   ],
                 ),
               )),
-          Expanded(child: AllEmployeeAttended(projectId: selectedProjectId, selectedFilter: selectedFilter)),
+          Expanded(
+              child:
+                  AllEmployeeAttended(projectId: selectedProjectId, selectedFilter: selectedFilter, updator: updator)),
         ],
       ),
     );
@@ -242,7 +263,7 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                     const Text(
                       'Add Attendance',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -289,27 +310,26 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      readOnly: true,
-                      controller: _timeOutController,
-                      onTap: () async {
-                        TimeOfDay? pickedTime = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-                        if (pickedTime != null) {
-                          setState(() {
-                            _timeOutController.text = pickedTime.format(context);
-                          });
-                        }
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Time Out',
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.access_time),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                    // TextFormField(
+                    //   readOnly: true,
+                    //   controller: _timeOutController,
+                    //   onTap: () async {
+                    //     TimeOfDay? pickedTime = await showTimePicker(
+                    //       context: context,
+                    //       initialTime: TimeOfDay.now(),
+                    //     );
+                    //     if (pickedTime != null) {
+                    //       setState(() {
+                    //         _timeOutController.text = pickedTime.format(context);
+                    //       });
+                    //     }
+                    //   },
+                    //   decoration: const InputDecoration(
+                    //     labelText: 'Time Out',
+                    //     border: OutlineInputBorder(),
+                    //     suffixIcon: Icon(Icons.access_time),
+                    //   ),
+                    // ),
                     TextFormField(
                       controller: _placeController,
                       decoration: const InputDecoration(
@@ -379,7 +399,7 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
       Map<String, dynamic> response = await requestHandler.handleRequest(
         context,
         'attendance/createAttendance',
-        body: {"userId": userId, "timeIn": timeIn, "timeOut": timeOut, "place": place, "status": status},
+        body: {"userId": userId, "timeIn": timeIn, "place": place, "status": status},
       );
       setState(() {
         isLoading = false;
@@ -390,6 +410,9 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
             content: Text(response['message'] ?? 'Attendance created successfully.'),
           ),
         );
+        setState(() {
+          updator++;
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -406,6 +429,8 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
       );
     }
   }
+
+  _setAllAttendance(List employees) {}
 }
 
 class FilterToggleButton extends StatefulWidget {
@@ -444,9 +469,9 @@ class _FilterToggleButtonState extends State<FilterToggleButton> {
           child: Text(
             widget.label,
             style: TextStyle(
-              color: widget.isSelected ? Colors.white : const Color.fromARGB(255, 27, 72, 78),
-              fontWeight: FontWeight.bold,
-            ),
+                color: widget.isSelected ? Colors.white : const Color.fromARGB(255, 27, 72, 78),
+                fontWeight: FontWeight.bold,
+                fontSize: 12),
           ),
         ),
       ),
@@ -495,7 +520,7 @@ class ProjectDropdown extends StatelessWidget {
         'Select a Project',
         style: TextStyle(
           fontWeight: FontWeight.w600,
-          fontSize: 16,
+          fontSize: 12,
           color: Color.fromARGB(255, 27, 72, 78),
         ),
       ),

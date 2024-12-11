@@ -103,7 +103,7 @@ class _AttendanceReportTable extends State<AttendanceReportTable> {
                 child: Text(
                   'Attendance Report',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -122,7 +122,7 @@ class _AttendanceReportTable extends State<AttendanceReportTable> {
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 80, 160, 170),
                       ),
-                      dataTextStyle: const TextStyle(fontSize: 14),
+                      dataTextStyle: const TextStyle(fontSize: 12),
                       headingRowColor: WidgetStateProperty.all(
                         const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
                       ),
@@ -131,25 +131,25 @@ class _AttendanceReportTable extends State<AttendanceReportTable> {
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.25,
-                            child: const Text('NAME'),
+                            child: const Text('NAME', style: TextStyle(fontSize: 12)),
                           ),
                         ),
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.11,
-                            child: const Text('PRESENT'),
+                            child: const Text('PRESENT', style: TextStyle(fontSize: 12)),
                           ),
                         ),
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.11,
-                            child: const Text('ABSENT'),
+                            child: const Text('ABSENT', style: TextStyle(fontSize: 12)),
                           ),
                         ),
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.11,
-                            child: const Text('LEAVE'),
+                            child: const Text('LEAVE', style: TextStyle(fontSize: 12)),
                           ),
                         ),
                       ],
@@ -159,25 +159,25 @@ class _AttendanceReportTable extends State<AttendanceReportTable> {
                             DataCell(
                               SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.25,
-                                child: Text(user["userName"]),
+                                child: Text(user["userName"], style: TextStyle(fontSize: 12)),
                               ),
                             ),
                             DataCell(
                               SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.11,
-                                child: Text(user["present"].toString()),
+                                child: Text(user["present"].toString(), style: TextStyle(fontSize: 12)),
                               ),
                             ),
                             DataCell(
                               SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.11,
-                                child: Text(user["absent"].toString()),
+                                child: Text(user["absent"].toString(), style: TextStyle(fontSize: 12)),
                               ),
                             ),
                             DataCell(
                               SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.11,
-                                child: Text(user["leave"].toString()),
+                                child: Text(user["leave"].toString(), style: TextStyle(fontSize: 12)),
                               ),
                             ),
                           ],

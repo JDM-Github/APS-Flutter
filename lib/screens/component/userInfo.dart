@@ -48,7 +48,7 @@ class UserInfoSection extends StatelessWidget {
                   Text(
                     fullName,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -62,7 +62,7 @@ class UserInfoSection extends StatelessWidget {
                   SizedBox(width: 5),
                   Text(
                     position == '' ? "NONE" : position,
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -73,7 +73,7 @@ class UserInfoSection extends StatelessWidget {
                   SizedBox(width: 5),
                   Text(
                     'ID: $ids',
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),

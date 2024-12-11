@@ -1,33 +1,69 @@
+import 'package:first_project/handle_request.dart';
 import 'package:flutter/material.dart';
 
 class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({super.key});
+  final dynamic users;
+  const NotificationScreen(this.users, {super.key});
 
   @override
-  _NotificationScreenState createState() => _NotificationScreenState();
+  State<NotificationScreen> createState() => _NotificationScreenState();
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  final List<Map<String, dynamic>> notifications = [
-    {
-      'title': 'New Task Assigned',
-      'message': 'You have been assigned a new task: Design the home screen.',
-      'date': '2024-11-14',
-      'read': false,
-    },
-    {
-      'title': 'Meeting Reminder',
-      'message': 'Your meeting with the project manager starts at 3 PM.',
-      'date': '2024-11-14',
-      'read': false,
-    },
-    {
-      'title': 'Project Deadline',
-      'message': 'The deadline for the project is next week.',
-      'date': '2024-11-12',
-      'read': true,
-    },
-  ];
+  // final List<Map<String, dynamic>> notifications = [
+  //   {
+  //     'title': 'New Task Assigned',
+  //     'message': 'You have been assigned a new task: Design the home screen.',
+  //     'date': '2024-11-14',
+  //     'read': false,
+  //   },
+  //   {
+  //     'title': 'Meeting Reminder',
+  //     'message': 'Your meeting with the project manager starts at 3 PM.',
+  //     'date': '2024-11-14',
+  //     'read': false,
+  //   },
+  //   {
+  //     'title': 'Project Deadline',
+  //     'message': 'The deadline for the project is next week.',
+  //     'date': '2024-11-12',
+  //     'read': true,
+  //   },
+  // ];
+
+  List<dynamic> notifications = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.users != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => init());
+    }
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'users/getAllNotification',
+        body: {"userId": widget.users['id']},
+      );
+      if (response['success'] == true) {
+        setState(() => notifications = response['notifications']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading schedules error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
 
   void _showNotificationDetails(Map<String, dynamic> notification) {
     showDialog(
@@ -36,11 +72,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return AlertDialog(
           title: Text(
             notification['title'],
-            style: const TextStyle(fontSize: 14), // Smaller font size
+            style: const TextStyle(fontSize: 14),
           ),
           content: Text(
             notification['message'],
-            style: const TextStyle(fontSize: 12), // Smaller font size
+            style: const TextStyle(fontSize: 12),
           ),
           actions: [
             TextButton(
@@ -52,7 +88,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               },
               child: const Text(
                 'Mark as Read',
-                style: TextStyle(fontSize: 12), // Smaller font size
+                style: TextStyle(fontSize: 12),
               ),
             ),
           ],

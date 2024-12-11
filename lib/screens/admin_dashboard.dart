@@ -27,6 +27,7 @@ class AdminAppbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Map<String, dynamic> users = Config.get('user');
     return AppBar(
       title: const Text(
         'Admin Dashboard',
@@ -50,7 +51,7 @@ class AdminAppbar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (builder) => NotificationScreen()),
+              MaterialPageRoute(builder: (builder) => NotificationScreen(null)),
             );
           },
         ),

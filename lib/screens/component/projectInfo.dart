@@ -20,7 +20,7 @@ class ProjectInfoSection extends StatelessWidget {
               Text(
                 'THE PROJECT MANAGER',
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Color.fromARGB(255, 80, 160, 170),
                 ),
@@ -28,12 +28,12 @@ class ProjectInfoSection extends StatelessWidget {
             if (!users['isManager'])
               Text(
                 'Project Manager: ${(users['projectManager'] == '') ? 'NO PROJECT MANAGER' : users['projectManager']}',
-                style: const TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 12),
               ),
             const SizedBox(height: 10),
             const Text(
               'Current Assignment: Team A - Mobile App Development',
-              style: TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: 12),
             ),
           ],
         )

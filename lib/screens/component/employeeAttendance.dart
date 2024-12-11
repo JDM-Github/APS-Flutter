@@ -23,7 +23,7 @@ class EmployeeAttendance extends StatelessWidget {
                 child: Text(
                   'Your Schedule',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -42,22 +42,21 @@ class EmployeeAttendance extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 80, 160, 170),
                       ),
-                      dataTextStyle: const TextStyle(fontSize: 14),
+                      dataTextStyle: const TextStyle(fontSize: 12),
                       headingRowColor: WidgetStateProperty.all(
-                        const Color.fromARGB(255, 80, 160, 170)
-                            .withOpacity(0.1),
+                        const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
                       ),
                       columns: [
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.30,
-                            child: const Center(child: Text('Employee')),
+                            child: const Center(child: Text('Employee', style: TextStyle(fontSize: 12))),
                           ),
                         ),
                         DataColumn(
                           label: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.35,
-                            child: const Center(child: Text('Action')),
+                            child: const Center(child: Text('Action', style: TextStyle(fontSize: 12))),
                           ),
                         ),
                       ],
@@ -66,11 +65,10 @@ class EmployeeAttendance extends StatelessWidget {
                           cells: [
                             DataCell(SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.25,
-                                child: const Text('John Dave Pega'))),
+                                child: const Text('John Dave Pega', style: TextStyle(fontSize: 12)))),
                             DataCell(
                               SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.4,
+                                  width: MediaQuery.of(context).size.width * 0.4,
                                   child: ElevatedButton(
                                     onPressed: () {
                                       _showEventDetails(
@@ -81,14 +79,12 @@ class EmployeeAttendance extends StatelessWidget {
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 50, vertical: 10),
-                                      backgroundColor: const Color.fromARGB(
-                                          255, 80, 160, 170),
+                                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                      backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                                     ),
                                     child: const Text(
                                       'View',
-                                      style: TextStyle(color: Colors.white),
+                                      style: TextStyle(color: Colors.white, fontSize: 12),
                                     ),
                                   )),
                             ),
@@ -106,8 +102,7 @@ class EmployeeAttendance extends StatelessWidget {
     );
   }
 
-  void _showEventDetails(
-      BuildContext context, String projectName, String eventName, String time) {
+  void _showEventDetails(BuildContext context, String projectName, String eventName, String time) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

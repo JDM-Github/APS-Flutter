@@ -22,7 +22,7 @@ class HandleScheduleAppbar extends StatelessWidget implements PreferredSizeWidge
     return AppBar(
       title: const Text(
         'Manage Schedule',
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(color: Colors.white, fontSize: 16),
       ),
       foregroundColor: Colors.white,
       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
@@ -46,6 +46,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
 
   List<dynamic> users = [];
   List<dynamic> projects = [];
+  int updator = 0;
   @override
   void initState() {
     super.initState();
@@ -170,7 +171,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                                         project['projectName'],
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w600,
-                                          fontSize: 16,
+                                          fontSize: 12,
                                           color: Color.fromARGB(255, 27, 72, 78),
                                         ),
                                       ),
@@ -188,7 +189,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                           projects.isNotEmpty ? 'Select a Project' : 'No Projects Available',
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                            fontSize: 12,
                             color: Color.fromARGB(255, 27, 72, 78),
                           ),
                         ),
@@ -223,7 +224,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                                         '${user['firstName']} ${user['lastName']}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w600,
-                                          fontSize: 16,
+                                          fontSize: 12,
                                           color: Color.fromARGB(255, 27, 72, 78),
                                         ),
                                       ),
@@ -242,7 +243,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
                           users.isNotEmpty ? 'Select a User' : 'No Users Available',
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                            fontSize: 12,
                             color: Color.fromARGB(255, 27, 72, 78),
                           ),
                         ),
@@ -271,7 +272,7 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
             ),
           ),
           if (!isSelectionValid) const Center(child: Text('No user or project selected.')),
-          if (isSelectionValid) Expanded(child: EmployeeSchedule(selectedUser!)),
+          if (isSelectionValid) Expanded(child: EmployeeSchedule(selectedUser!, updator: updator)),
         ],
       ),
     );
@@ -291,6 +292,9 @@ class _HandleScheduleBodyState extends State<HandleScheduleBody> {
             content: Text(response['message'] ?? 'Schedule created successfully.'),
           ),
         );
+        setState(() {
+          updator++;
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -357,7 +361,7 @@ class _AddScheduleModalState extends State<AddScheduleModal> {
             const Text(
               'Add Schedule',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
             ),

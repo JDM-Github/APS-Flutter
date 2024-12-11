@@ -87,7 +87,7 @@ class _ManageProjectTableState extends State<ManageProjectTable> {
                 child: Text(
                   'All Projects',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -110,7 +110,7 @@ class _ManageProjectTableState extends State<ManageProjectTable> {
                                   fontWeight: FontWeight.bold,
                                   color: Color.fromARGB(255, 80, 160, 170),
                                 ),
-                                dataTextStyle: const TextStyle(fontSize: 14),
+                                dataTextStyle: const TextStyle(fontSize: 12),
                                 headingRowColor: WidgetStateProperty.all(
                                   const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
                                 ),

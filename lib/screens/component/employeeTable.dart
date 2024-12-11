@@ -126,7 +126,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                             columns: [
                               DataColumn(
                                 label: SizedBox(
-                                  width: MediaQuery.of(context).size.width * 0.4,
+                                  width: MediaQuery.of(context).size.width * 0.35,
                                   child: Text(
                                     'Name',
                                     style: TextStyle(fontSize: 12),
@@ -145,10 +145,13 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                 ),
                               ),
                               DataColumn(
-                                label: Text(
-                                  'Action',
-                                  style: TextStyle(fontSize: 12),
-                                  textAlign: TextAlign.center,
+                                label: SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.1,
+                                  child: Text(
+                                    'Action',
+                                    style: TextStyle(fontSize: 12),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
                             ],
@@ -190,7 +193,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                         width: 30,
                                         child: const Text(
                                           'View',
-                                          style: TextStyle(color: Colors.white),
+                                          style: TextStyle(color: Colors.white, fontSize: 12),
                                         ),
                                       ),
                                     ),
@@ -203,7 +206,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                       ),
                                       child: Text(
                                         isDeactivated ? "ACTIVATE" : "DEACTIVATE",
-                                        style: const TextStyle(color: Colors.white),
+                                        style: const TextStyle(color: Colors.white, fontSize: 12),
                                       ),
                                     ),
                                   ),

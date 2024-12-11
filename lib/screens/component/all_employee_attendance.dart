@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 class AllEmployeeAttended extends StatefulWidget {
   final String selectedFilter;
   final String projectId;
-  const AllEmployeeAttended({this.projectId = "", super.key, required this.selectedFilter});
+  final int updator;
+  const AllEmployeeAttended({this.projectId = "", super.key, required this.selectedFilter, required this.updator});
 
   @override
   State<AllEmployeeAttended> createState() => _AllEmployeeAttended();
@@ -23,7 +24,9 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
   @override
   void didUpdateWidget(covariant AllEmployeeAttended oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.projectId != widget.projectId || oldWidget.selectedFilter != widget.selectedFilter) {
+    if (oldWidget.projectId != widget.projectId ||
+        oldWidget.selectedFilter != widget.selectedFilter ||
+        oldWidget.updator != widget.updator) {
       WidgetsBinding.instance.addPostFrameCallback((_) => init());
     }
   }
@@ -91,7 +94,7 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
                 child: Text(
                   'Employee Attended',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -110,7 +113,7 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 80, 160, 170),
                       ),
-                      dataTextStyle: const TextStyle(fontSize: 14),
+                      dataTextStyle: const TextStyle(fontSize: 12),
                       headingRowColor: WidgetStateProperty.all(
                         const Color.fromARGB(255, 80, 160, 170).withOpacity(0.1),
                       ),

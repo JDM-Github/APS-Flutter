@@ -32,12 +32,13 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic> users = Config.get('user');
     return AppBar(
       title: Row(
         children: [
           const Text(
             'Dashboard',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
         ],
       ),
@@ -48,7 +49,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.notifications),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (builder) => const NotificationScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (builder) => NotificationScreen(users)));
           },
         ),
         IconButton(
@@ -91,7 +92,7 @@ class DashboardBody extends StatelessWidget {
           const ProjectInfoSection(),
           NavigatorEmployee(users),
           Expanded(
-            child: EmployeeSchedule(users['id']),
+            child: EmployeeSchedule(users['id'], updator: 0),
           ),
         ],
       ),
@@ -159,7 +160,7 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (builder) => const ManageLeavesScreen()),
+                      MaterialPageRoute(builder: (builder) => ManageLeavesScreen(widget.users)),
                     );
                   },
                 ),
@@ -258,7 +259,7 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
                               const SizedBox(height: 20),
                               ElevatedButton(
                                 onPressed: () {
-                                  if (widget.users['projectManagerId'] == null) {
+                                  if (widget.users['projectId'] == null) {
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('Employee has not assigned in a project.')),
@@ -273,9 +274,9 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
                                     endDateController.text,
                                   );
                                   Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Leave request submitted')),
-                                  );
+                                  // ScaffoldMessenger.of(context).showSnackBar(
+                                  //   const SnackBar(content: Text('Leave request submitted')),
+                                  // );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color.fromARGB(255, 80, 160, 170),
@@ -357,7 +358,7 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response['message'] ?? 'Sendning leave request error')),
+            SnackBar(content: Text(response['message'] ?? 'Sending leave request error')),
           );
         }
       }

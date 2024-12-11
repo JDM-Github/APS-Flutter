@@ -1,9 +1,11 @@
+import 'package:first_project/handle_request.dart';
 import 'package:first_project/screens/employee/requestLeave.dart';
 import 'package:flutter/material.dart';
 
 // ManageLeavesScreen
 class ManageLeavesScreen extends StatefulWidget {
-  const ManageLeavesScreen({super.key});
+  final dynamic users;
+  const ManageLeavesScreen(this.users, {super.key});
 
   @override
   State<ManageLeavesScreen> createState() => _ManageLeavesScreenState();
@@ -14,7 +16,43 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
   final List<String> _employees = ['John Doe', 'Jane Smith', 'Michael Johnson', 'Emily Davis'];
 
   final List<String> _leaveTypes = ['Sick Leave', 'Casual Leave', 'Annual Leave'];
-  final List<Map<String, dynamic>> _leaveRequests = [];
+  List<dynamic> _leaveRequests = [];
+
+  String selectedProjectId = "";
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.users['projectId'] != null) {
+      selectedProjectId = widget.users['projectId'];
+      WidgetsBinding.instance.addPostFrameCallback((_) => init());
+    }
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler
+          .handleRequest(context, 'projects/get-all-leave-request', body: {"projectId": selectedProjectId});
+
+      if (response['success'] == true) {
+        setState(() {
+          _leaveRequests = response['data'];
+          print(response['data']);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading projects error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
 
   String? _selectedEmployee;
   String? _selectedLeaveType;
@@ -37,11 +75,10 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
       lastDate: DateTime(2100),
     );
     if (picked != null) {
-      controller.text = '${picked.toLocal()}'.split(' ')[0]; // Formatting date as YYYY-MM-DD
+      controller.text = '${picked.toLocal()}'.split(' ')[0];
     }
   }
 
-  // Function to add leave request
   void _addLeaveRequest() {
     if (_selectedEmployee != null &&
         _selectedLeaveType != null &&
@@ -165,7 +202,10 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Leaves'),
+        title: const Text(
+          'Manage Leaves',
+          style: TextStyle(fontSize: 16),
+        ),
         backgroundColor: const Color.fromARGB(255, 80, 160, 170),
         foregroundColor: Colors.white,
         actions: [
@@ -187,7 +227,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
           children: [
             const Text(
               'Leave Requests',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -205,7 +245,11 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                         final leave = _leaveRequests[index];
                         return ListTile(
                           leading: const Icon(Icons.person),
-                          title: Text(leave['employee']),
+                          title: Text(leave['User']['firstName'] +
+                              " " +
+                              leave['User']['middleName'] +
+                              " " +
+                              leave['User']['lastName']),
                           subtitle: Text(
                             '${leave['leaveType']} - '
                             '${DateTime.parse(leave['startDate']).toLocal().toString().split(' ')[0]} to '

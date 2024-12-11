@@ -13,12 +13,15 @@ class ViewEmployeeScreen extends StatefulWidget {
 }
 
 class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
+  int updator = 0;
   @override
   Widget build(BuildContext context) {
-    print(widget.user);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Employee Details'),
+        title: const Text(
+          'Employee Details',
+          style: TextStyle(fontSize: 16),
+        ),
         backgroundColor: const Color.fromARGB(255, 80, 160, 170),
         foregroundColor: Colors.white,
         actions: [
@@ -102,7 +105,7 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
             UserInfoSection(
                 profileImage: widget.user['profileImage'],
                 position: widget.user['position'],
-                fullName: '${widget.user['firstName'][0]}${widget.user['lastName'][0]}',
+                fullName: '${widget.user['firstName']} ${widget.user['lastName']}',
                 ids: widget.user['id']),
 
             Container(
@@ -125,7 +128,7 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
                     Text(
                       'THE PROJECT MANAGER',
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 80, 160, 170),
                       ),
@@ -133,17 +136,17 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
                   if (!widget.user['isManager'])
                     Text(
                       'Project Manager: ${(widget.user['projectManager'] == '') ? 'NO PROJECT MANAGER' : widget.user['projectManager']}',
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   const SizedBox(height: 10),
                   Text(
                     'Email: ${widget.user['email']}',
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 12),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     'Department: ${widget.user['department']}',
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 12),
                   ),
                   Wrap(
                     spacing: 8.0,
@@ -153,7 +156,7 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
                               backgroundColor: const Color.fromARGB(255, 80, 160, 170),
                               label: Text(
                                 skill,
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(color: Colors.white, fontSize: 12),
                               ),
                             ))
                         .toList(),
@@ -165,7 +168,7 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
 
             // Status Section
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
@@ -184,7 +187,7 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
                   const Text(
                     'Status:',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Color.fromARGB(255, 80, 160, 170),
                     ),
@@ -192,7 +195,7 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
                   Text(
                     widget.user['is_deactivated'] ? "Inactive" : "Active",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: widget.user['is_deactivated'] ? Colors.red : Colors.green,
                     ),
@@ -202,7 +205,7 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
             ),
             SizedBox(
               height: 500,
-              child: EmployeeSchedule(widget.user['id']),
+              child: EmployeeSchedule(widget.user['id'], updator: updator),
             )
           ],
         ),
