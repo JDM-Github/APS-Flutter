@@ -173,7 +173,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         'users/change-password',
                         body: {
                           'email': emailController.text,
-                          'password': passwordController,
+                          'password': passwordController.text,
                         },
                       );
 
