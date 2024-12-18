@@ -433,28 +433,30 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                       ),
                     ),
                   ]),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: ElevatedButton.icon(
-                          onPressed: _showAddProjectModal,
-                          icon: const Icon(Icons.add, color: Colors.white),
-                          label: const Text('Add Project', style: TextStyle(color: Colors.white, fontSize: 12)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 80, 160, 170),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: ElevatedButton.icon(
+                        onPressed: _showAddProjectModal,
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        label: const Text('Add Project', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
-                      FilterToggleButton(
-                        label: 'Active',
-                        isSelected: selectedFilter == 'Active',
-                        onPressed: () => _updateFilter('Active'),
-                      ),
+                    ),
+                    FilterToggleButton(
+                      label: 'Active',
+                      isSelected: selectedFilter == 'Active',
+                      onPressed: () => _updateFilter('Active'),
+                    ),
+                  ]),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       FilterToggleButton(
                         label: 'Completed',
                         isSelected: selectedFilter == 'Completed',

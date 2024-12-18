@@ -65,6 +65,37 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
     });
   }
 
+  void setActiveDeactive(id) async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = {};
+      response = await requestHandler.handleRequest(
+        context,
+        'users/set-active-deactive',
+        body: {'id': id},
+      );
+      setState(() {
+        isLoading = false;
+      });
+      if (response['success'] == true) {
+        init();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Updating employee error'),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -200,7 +231,9 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                   ),
                                   DataCell(
                                     ElevatedButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        setActiveDeactive(user['id']);
+                                      },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isDeactivated ? Colors.green : Colors.red,
                                       ),

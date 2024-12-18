@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 
 class ProjectDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> project;
-  const ProjectDetailsScreen({required this.project, super.key});
+  final bool isAdmin;
+  const ProjectDetailsScreen({this.isAdmin = true, required this.project, super.key});
 
   @override
   Widget build(BuildContext context) {
-    bool? isAdmin = Config.get('isAdmin');
+    print(isAdmin);
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
@@ -51,12 +52,12 @@ class ProjectDetailsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              if (project['id'] != null)
+              if (isAdmin)
                 Expanded(
                     child: AllEmployeeTable(
                   projectId: project['id'],
                 )),
-              if (isAdmin != null && isAdmin)
+              if (isAdmin)
                 SizedBox(
                   width: double.infinity,
                   height: 50,

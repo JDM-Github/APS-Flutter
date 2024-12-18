@@ -6,7 +6,7 @@ import 'dart:convert';
 
 class RequestHandler {
   final bool development;
-  RequestHandler({this.development = true});
+  RequestHandler({this.development = false});
   String get baseUrl {
     return development ? 'http://192.168.100.151:8888' : 'https://aps-backend.netlify.app';
   }

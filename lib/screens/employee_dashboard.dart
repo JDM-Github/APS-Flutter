@@ -114,9 +114,43 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
   final TextEditingController startDateController = TextEditingController();
   final TextEditingController endDateController = TextEditingController();
   String selectedLeaveType = 'Sick Leave';
+  late dynamic project;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/getProject',
+        body: {"id": widget.users['projectId']},
+      );
+      if (response['success'] == true) {
+        setState(() {
+          project = response['project'];
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading project error'),
+          ),
+        );
+        project = null;
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    print(widget.users['projectId']);
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -326,9 +360,18 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
                   label: 'Projects',
                   icon: Icons.folder,
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Unimplemented yet.')),
-                    );
+                    // Navigator
+                    // ProjectDetailsScreen
+                    if (widget.users['projectId'] == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('There is no project assigned.')),
+                      );
+                    } else {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (builder) => ProjectDetailsScreen(isAdmin: false, project: project)));
+                    }
                   },
                 ),
             ],
