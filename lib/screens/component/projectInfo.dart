@@ -7,6 +7,7 @@ class ProjectInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Map<String, dynamic> users = Config.get('user');
+    print(users);
     return Container(
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
@@ -31,10 +32,20 @@ class ProjectInfoSection extends StatelessWidget {
                 style: const TextStyle(fontSize: 12),
               ),
             const SizedBox(height: 10),
-            const Text(
-              'Current Assignment: Team A - Mobile App Development',
+            Text(
+              'Position: ${users['position']}',
               style: TextStyle(fontSize: 12),
             ),
+            const SizedBox(height: 10),
+            Text(
+              'Verified: ${users['isVerified'] ? "VERIFIED" : "NOT VERIFIED"}',
+              style: TextStyle(fontSize: 12),
+            ),
+            // const SizedBox(height: 10),
+            // Text(
+            //   'Working Hours: ${users['workingHrs']}',
+            //   style: TextStyle(fontSize: 12),
+            // ),
           ],
         )
       ]),

@@ -1,19 +1,21 @@
 import 'package:csv/csv.dart';
 import 'package:first_project/flutter_session.dart';
+import 'package:first_project/handle_request.dart';
+import 'package:first_project/screens/component/adminAttendanceReport.dart';
 import 'package:first_project/screens/component/attendanceReport.dart';
 import 'package:first_project/screens/component/employee_attendance_report.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 
-class AttendanceReportScreen extends StatefulWidget {
-  const AttendanceReportScreen({super.key});
+class AdminAttendanceReportScreen extends StatefulWidget {
+  const AdminAttendanceReportScreen({super.key});
 
   @override
-  State<AttendanceReportScreen> createState() => _AttendanceReportScreenState();
+  State<AdminAttendanceReportScreen> createState() => _AdminAttendanceReportScreenState();
 }
 
-class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
+class _AdminAttendanceReportScreenState extends State<AdminAttendanceReportScreen> {
   String selectedMonth = '';
   String selectedYear = '';
   final List<String> months = [
@@ -32,6 +34,12 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
   ];
   final List<String> years = [];
 
+  List<dynamic> projects = [];
+  bool isLoading = true;
+  String selectedProjectId = "";
+  int updator = 0;
+
+
   @override
   void initState() {
     super.initState();
@@ -41,22 +49,88 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
     for (int i = 0; i < 5; i++) {
       years.add((now.year - i).toString());
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) => init()); 
+  }
+
+  Future<void> onProjectChanged(String projectId) async {
+    print("TEST");
+    setState(() {
+      selectedProjectId = projectId;
+    });
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/get-all-projects',
+        body: {"filter": "Active"},
+      );
+      setState(() {
+        isLoading = false;
+      });
+      if (response['success'] == true) {
+        setAllProjects(response['projects']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading projects error'),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
+  Future<void> setAllProjects(List<dynamic> projects) async {
+    setState(() {
+      this.projects = projects;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic> users = Config.get('user');
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Attendance Report", style: TextStyle(fontSize: 16)),
+        title: const Text("Admin Attendance Report", style: TextStyle(fontSize: 16)),
         backgroundColor: const Color.fromARGB(255, 80, 160, 170),
         foregroundColor: Colors.white,
         elevation: 5,
+        actions: [
+            IconButton(
+              icon: const Icon(Icons.restart_alt_rounded),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (builder) => AdminAttendanceReportScreen()),
+                );
+              },
+            ),
+          ]
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProjectDropdown(projects, onProjectChanged: onProjectChanged),
+                ],
+              ),
+            ),
             AttendanceFilter(
               selectedMonth: selectedMonth,
               selectedYear: selectedYear,
@@ -73,15 +147,64 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                 });
               },
             ),
-            if (users['isManager']) AttendanceReportTable(users, selectedMonth, selectedYear),
-            if (!users['isManager']) EmployeeAttendanceReportTable(users, selectedMonth, selectedYear),
-            // if (!users['isManager']) EmployeeAttendanceReportTable(users, selectedMonth, selectedYear),
+            AdminAttendanceReportTable(selectedProjectId, selectedMonth, selectedYear),
           ],
         ),
       ),
     );
   }
 }
+
+
+class ProjectDropdown extends StatelessWidget {
+  final List<dynamic> projects;
+  final Function(String) onProjectChanged;
+
+  const ProjectDropdown(this.projects, {required this.onProjectChanged, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: const Color.fromARGB(255, 80, 160, 170).withOpacity(0.3),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+        border: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      items: projects.map<DropdownMenuItem<String>>((project) {
+        return DropdownMenuItem<String>(
+          value: project['id'].toString(),
+          child: Text(project['projectName'] ?? 'Unnamed Project'),
+        );
+      }).toList(),
+      onChanged: (value) {
+        if (value != null) {
+          onProjectChanged(value);
+        }
+      },
+      hint: const Text(
+        'Select a Project',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+          color: Color.fromARGB(255, 27, 72, 78),
+        ),
+      ),
+    );
+  }
+}
+
 
 class AttendanceFilter extends StatelessWidget {
   final String selectedMonth;

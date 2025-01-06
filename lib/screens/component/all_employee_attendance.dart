@@ -42,6 +42,7 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
           'id': widget.projectId,
           'isPresent': widget.selectedFilter == 'Present',
           'isAbsent': widget.selectedFilter == 'Absent',
+          'isLate': widget.selectedFilter == 'Late',
           'isOnLeave': widget.selectedFilter == 'Leave',
         },
       );
@@ -146,8 +147,8 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
                                 width: MediaQuery.of(context).size.width * 0.4,
                                 child: ElevatedButton(
                                   onPressed: () {
-                                    // Replace with your action
-                                    print('Viewing details for ${employee['id']}');
+                                    print(employee['attendance']);
+                                    _showEmployeeAttendance(context, fullName, employee['attendance']['place'], employee['attendance']['timeIn'], employee['attendance']['timeOut']);
                                   },
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
@@ -174,7 +175,7 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
     );
   }
 
-  void _showEventDetails(BuildContext context, String projectName, String eventName, String time) {
+  void _showEmployeeAttendance(BuildContext context, String fullname, String place, String? time, String? timeOut) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -184,11 +185,13 @@ class _AllEmployeeAttended extends State<AllEmployeeAttended> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Project Name: $projectName'),
+              Text('Full Name: $fullname'),
               const SizedBox(height: 10),
-              Text('Event Name: $eventName'),
+              Text('Place Name: $place'),
               const SizedBox(height: 10),
-              Text('Time: $time'),
+              Text('Time In: $time'),
+              const SizedBox(height: 10),
+              Text('Time Out: $timeOut'),
             ],
           ),
           actions: [

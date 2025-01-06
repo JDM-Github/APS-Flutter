@@ -1,17 +1,18 @@
 import 'package:first_project/handle_request.dart';
+import 'package:first_project/screens/employee/attendanceReport.dart';
 import 'package:flutter/material.dart';
 
-class EmployeeAttendanceReportTable extends StatefulWidget {
-  final Map<String, dynamic> users;
+class AdminAttendanceReportTable extends StatefulWidget {
+  final String projectId;
   final String selectedMonth;
   final String selectedYear;
-  const EmployeeAttendanceReportTable(this.users, this.selectedMonth, this.selectedYear, {super.key});
+  const AdminAttendanceReportTable(this.projectId, this.selectedMonth, this.selectedYear, {super.key});
 
   @override
-  State<StatefulWidget> createState() => _EmployeeAttendanceReportTable();
+  State<StatefulWidget> createState() => _AdminAttendanceReportTable();
 }
 
-class _EmployeeAttendanceReportTable extends State<EmployeeAttendanceReportTable> {
+class _AdminAttendanceReportTable extends State<AdminAttendanceReportTable> {
   dynamic allAttendance = [];
 
   @override
@@ -21,9 +22,9 @@ class _EmployeeAttendanceReportTable extends State<EmployeeAttendanceReportTable
   }
 
   @override
-  void didUpdateWidget(covariant EmployeeAttendanceReportTable oldWidget) {
+  void didUpdateWidget(covariant AdminAttendanceReportTable oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedMonth != widget.selectedMonth || oldWidget.selectedYear != widget.selectedYear) {
+    if (oldWidget.projectId != widget.projectId || oldWidget.selectedMonth != widget.selectedMonth || oldWidget.selectedYear != widget.selectedYear) {
       WidgetsBinding.instance.addPostFrameCallback((_) => init());
     }
   }
@@ -52,16 +53,16 @@ class _EmployeeAttendanceReportTable extends State<EmployeeAttendanceReportTable
     try {
       Map<String, dynamic> response = await requestHandler.handleRequest(
         context,
-        'users/getAllAttendance',
+        'users/getMonthlyAttendance',
         body: {
-          "userId": widget.users['id'],
+          "projectId": widget.projectId,
           'month': convertMonthToNumber(widget.selectedMonth),
           'year': widget.selectedYear
         },
       );
 
       if (response['success'] == true) {
-        getAllAttendance(response['attendance']);
+        getAllAttendance(response['data']);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -85,9 +86,11 @@ class _EmployeeAttendanceReportTable extends State<EmployeeAttendanceReportTable
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 10.0),
-        child: Card(
+        child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 10.0),
+      child: Column(children: [
+        Expanded(
+            child: Card(
           elevation: 5,
           color: Colors.white,
           child: Column(
@@ -130,58 +133,68 @@ class _EmployeeAttendanceReportTable extends State<EmployeeAttendanceReportTable
                         columns: [
                           DataColumn(
                             label: SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.11,
-                              child: const Text('DAY'),
+                              width: MediaQuery.of(context).size.width * 0.15,
+                              child: const Text('NAME', style: TextStyle(fontSize: 12)),
                             ),
                           ),
                           DataColumn(
                             label: SizedBox(
                               width: MediaQuery.of(context).size.width * 0.11,
-                              child: const Text('PRESENT'),
+                              child: const Text('PRESENT', style: TextStyle(fontSize: 12)),
                             ),
                           ),
                           DataColumn(
                             label: SizedBox(
                               width: MediaQuery.of(context).size.width * 0.11,
-                              child: const Text('LATE'),
+                              child: const Text('LATE', style: TextStyle(fontSize: 12)),
                             ),
                           ),
                           DataColumn(
                             label: SizedBox(
                               width: MediaQuery.of(context).size.width * 0.11,
-                              child: const Text('ABSENT'),
+                              child: const Text('ABSENT', style: TextStyle(fontSize: 12)),
                             ),
                           ),
                           DataColumn(
                             label: SizedBox(
                               width: MediaQuery.of(context).size.width * 0.11,
-                              child: const Text('LEAVE'),
+                              child: const Text('LEAVE', style: TextStyle(fontSize: 12)),
                             ),
                           ),
                         ],
-                        rows: allAttendance.map<DataRow>((attendance) {
+                        rows: List<Map<String, dynamic>>.from(allAttendance).map((user) {
                           return DataRow(
                             cells: [
-                              DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.11,
-                                child: Text(attendance['date'].split('T')[0]),
-                              )),
-                              DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.11,
-                                child: Text(attendance['isPresent'] ? 'Yes' : 'No'),
-                              )),
-                              DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.11,
-                                child: Text(attendance['isLate'] ? 'Yes' : 'No'),
-                              )),
-                              DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.11,
-                                child: Text(attendance['isAbsent'] ? 'Yes' : 'No'),
-                              )),
-                              DataCell(SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.11,
-                                child: Text(attendance['isOnLeave'] ? 'Yes' : 'No'),
-                              )),
+                              DataCell(
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.15,
+                                  child: Text(user["userName"], style: TextStyle(fontSize: 12)),
+                                ),
+                              ),
+                              DataCell(
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.11,
+                                  child: Text(user["present"].toString(), style: TextStyle(fontSize: 12)),
+                                ),
+                              ),
+                              DataCell(
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.11,
+                                  child: Text(user["late"].toString(), style: TextStyle(fontSize: 12)),
+                                ),
+                              ),
+                              DataCell(
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.11,
+                                  child: Text(user["absent"].toString(), style: TextStyle(fontSize: 12)),
+                                ),
+                              ),
+                              DataCell(
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.11,
+                                  child: Text(user["leave"].toString(), style: TextStyle(fontSize: 12)),
+                                ),
+                              ),
                             ],
                           );
                         }).toList(),
@@ -192,8 +205,10 @@ class _EmployeeAttendanceReportTable extends State<EmployeeAttendanceReportTable
               ),
             ],
           ),
-        ),
-      ),
-    );
+        )),
+        const SizedBox(height: 10),
+        SaveAsCsvButton(month: widget.selectedMonth, year: widget.selectedYear, jsonData: allAttendance),
+      ]),
+    ));
   }
 }

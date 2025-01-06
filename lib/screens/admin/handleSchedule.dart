@@ -26,6 +26,17 @@ class HandleScheduleAppbar extends StatelessWidget implements PreferredSizeWidge
       ),
       foregroundColor: Colors.white,
       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+      actions: [
+          IconButton(
+            icon: const Icon(Icons.restart_alt_rounded),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (builder) => HandleScheduleScreen()),
+              );
+            },
+          ),
+        ]
     );
   }
 

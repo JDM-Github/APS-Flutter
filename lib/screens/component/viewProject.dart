@@ -3,14 +3,61 @@ import 'package:first_project/screens/component/employee_list.dart';
 import 'package:first_project/screens/component/employeeTable.dart';
 import 'package:flutter/material.dart';
 
-class ProjectDetailsScreen extends StatelessWidget {
+class ProjectDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> project;
   final bool isAdmin;
-  const ProjectDetailsScreen({this.isAdmin = true, required this.project, super.key});
+  final bool isManager;
+
+  const ProjectDetailsScreen({
+    this.isAdmin = true,
+    this.isManager = false,
+    required this.project,
+    super.key,
+  });
+
+  @override
+  State<ProjectDetailsScreen> createState() => _ProjectDetailsScreenState();
+}
+
+class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
+
+// class ProjectDetailsScreen extends StatelessWidget {
+int counter = 1;
+  late Map<String, dynamic> project;
+  late bool isAdmin;
+//   const ProjectDetailsScreen({this.isAdmin = true, required this.project, super.key});
+
+  @override
+  void initState() {
+    super.initState();
+    project = widget.project;
+    isAdmin = widget.isAdmin;
+    // WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  void updateList()
+  {
+    setState(() {
+      counter++;
+    });
+    print(counter);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // This will be triggered when dependencies change
+    // You can access the context or other inherited widgets here
+    print("didChangeDependencies called");
+
+    // For example, fetching data from a provider (assuming you are using Provider)
+    // final someData = Provider.of<MyData>(context);
+
+    // If something depends on the context or inherited widgets, trigger actions here
+  }
 
   @override
   Widget build(BuildContext context) {
-    print(isAdmin);
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
@@ -56,8 +103,9 @@ class ProjectDetailsScreen extends StatelessWidget {
                 Expanded(
                     child: AllEmployeeTable(
                   projectId: project['id'],
+                  counter: counter
                 )),
-              if (isAdmin)
+              if (isAdmin && widget.isManager)
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -66,7 +114,7 @@ class ProjectDetailsScreen extends StatelessWidget {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (builder) => EmployeeListPage(ids: project['id'], notAssigned: true)));
+                              builder: (builder) => EmployeeListPage(onPop: updateList, ids: project['id'], notAssigned: true)));
                     },
                     icon: const Icon(Icons.add, color: Colors.white),
                     label: const Text('Add Employee', style: TextStyle(color: Colors.white)),

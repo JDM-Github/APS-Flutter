@@ -103,6 +103,8 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
         child: ListView(
           children: [
             UserInfoSection(
+              widget.user['email'],
+              widget.user['isVerified'],
                 profileImage: widget.user['profileImage'],
                 position: widget.user['position'],
                 fullName: '${widget.user['firstName']} ${widget.user['lastName']}',

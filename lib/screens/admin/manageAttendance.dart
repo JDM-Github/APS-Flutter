@@ -27,6 +27,17 @@ class ManageAttendanceAppbar extends StatelessWidget implements PreferredSizeWid
       ),
       foregroundColor: Colors.white,
       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.restart_alt_rounded),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (builder) => ManageAttendanceScreen()),
+            );
+          },
+        ),
+      ]
     );
   }
 
@@ -213,6 +224,11 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                           onPressed: () => _updateFilter('Present'),
                         ),
                         FilterToggleButton(
+                          label: 'Late',
+                          isSelected: selectedFilter == 'Late',
+                          onPressed: () => _updateFilter('Late'),
+                        ),
+                        FilterToggleButton(
                           label: 'Absent',
                           isSelected: selectedFilter == 'Absent',
                           onPressed: () => _updateFilter('Absent'),
@@ -222,6 +238,7 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                           isSelected: selectedFilter == 'Leave',
                           onPressed: () => _updateFilter('Leave'),
                         ),
+                        
                       ],
                     )
                   ],
@@ -349,7 +366,7 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                           status = newValue!;
                         });
                       },
-                      items: ['Present', 'Absent', 'Leave'].map((String statusOption) {
+                      items: ['Present', 'Late', 'Absent', 'Leave'].map((String statusOption) {
                         return DropdownMenuItem<String>(
                           value: statusOption,
                           child: Text(statusOption),

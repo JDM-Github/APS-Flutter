@@ -1,6 +1,7 @@
 import 'package:first_project/flutter_session.dart';
 import 'package:first_project/screens/admin/company.dart';
 import 'package:first_project/screens/admin/handleSchedule.dart';
+import 'package:first_project/screens/admin/listOfNavigation.dart';
 import 'package:first_project/screens/admin/manageAttendance.dart';
 import 'package:first_project/screens/admin/manageProject.dart';
 import 'package:first_project/screens/component/add_employee.dart';
@@ -15,19 +16,19 @@ class AdminDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       appBar: AdminAppbar(),
       body: DashboardBody(),
     );
   }
 }
 
+
 class AdminAppbar extends StatelessWidget implements PreferredSizeWidget {
   const AdminAppbar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Map<String, dynamic> users = Config.get('user');
     return AppBar(
       title: const Text(
         'Admin Dashboard',
@@ -40,6 +41,15 @@ class AdminAppbar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: Colors.white,
       backgroundColor: const Color.fromARGB(255, 80, 160, 170),
       actions: [
+        IconButton(
+          icon: const Icon(Icons.restart_alt_rounded),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (builder) => AdminDashboardScreen()),
+            );
+          },
+        ),
         IconButton(
           icon: const Icon(Icons.person_add),
           onPressed: () {
@@ -149,10 +159,10 @@ class NavigatorEmployee extends StatelessWidget {
                 },
               ),
               buildExpandedActionButton(
-                label: 'Company',
+                label: 'Other',
                 icon: Icons.business,
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (builder) => const CompanyScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (builder) => const ListOfNavigation()));
                 },
               ),
             ],

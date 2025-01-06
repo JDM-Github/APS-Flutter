@@ -27,6 +27,37 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
+class ConfirmTimeoutModal extends StatelessWidget {
+  final VoidCallback onConfirm;
+
+  const ConfirmTimeoutModal({super.key, required this.onConfirm});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Are you sure?"),
+      content: const Text("Are you sure you want to timeout?"),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            onConfirm();
+            Navigator.of(context).pop();
+          },
+          child: const Text("Confirm Timeout"),
+        ),
+      ],
+    );
+  }
+}
+
+
+
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key});
 
@@ -47,11 +78,58 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       iconTheme: const IconThemeData(color: Colors.white),
       actions: [
         IconButton(
+          icon: const Icon(Icons.directions_walk),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return ConfirmTimeoutModal(
+                  onConfirm: () async {
+                    RequestHandler requestHandler = RequestHandler();
+                    try {
+                      Map<String, dynamic> response = await requestHandler.handleRequest(
+                        context,
+                        'attendance/addTimeoutAndCalculateHours',
+                        body: {
+                          "userId": users['id'],
+                        },
+                      );
+
+                      if (response['success'] == true) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Timeout recorded and working hours calculated successfully.'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(response['message'] ?? 'Failed to record timeout.'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('An error occurred: $e'),
+                        ),
+                      );
+                    }
+                  },
+                );
+              },
+            );
+          },
+        ),
+
+
+        IconButton(
           icon: const Icon(Icons.notifications),
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (builder) => NotificationScreen(users)));
           },
         ),
+        
         IconButton(
           icon: const Icon(Icons.account_circle),
           onPressed: () {
@@ -84,6 +162,8 @@ class DashboardBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           UserInfoSection(
+            users['email'],
+            users['isVerified'],
             fullName: users['firstName'] + " " + users['lastName'],
             position: users['position'],
             ids: users['id'],
@@ -345,14 +425,7 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (builder) => ProjectDetailsScreen(project: {
-                                  'projectDescription': 'Develop a mobile app for e-commerce with Flutter.',
-                                  'Users': {'firstName': 'John', 'lastName': 'Doe'},
-                                  'projectLocation': 'New York, USA',
-                                  'startDate': DateTime(2023, 1, 15).toString(),
-                                  'endDate': DateTime(2024, 1, 15).toString(),
-                                  'projectType': 'Software Development',
-                                })));
+                            builder: (builder) => ProjectDetailsScreen(isAdmin: true, isManager: true, project: project)));
                   },
                 ),
               if (!widget.users['isManager'])

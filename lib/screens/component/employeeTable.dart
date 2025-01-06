@@ -1,10 +1,14 @@
+import 'dart:math';
+
 import 'package:first_project/handle_request.dart';
 import 'package:first_project/screens/component/viewEmployee.dart';
+import 'package:first_project/screens/verify_email.dart';
 import 'package:flutter/material.dart';
 
 class AllEmployeeTable extends StatefulWidget {
   final String projectId;
-  const AllEmployeeTable({this.projectId = "", super.key});
+  final int counter;
+  const AllEmployeeTable({this.projectId = "", this.counter=0, super.key});
 
   @override
   State<AllEmployeeTable> createState() => _AllEmployeeTableState();
@@ -12,12 +16,23 @@ class AllEmployeeTable extends StatefulWidget {
 
 class _AllEmployeeTableState extends State<AllEmployeeTable> {
   List<dynamic> employees = [];
+  List<dynamic> allUsers = [];
   bool isLoading = true;
+  bool isVerified = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  @override
+  void didUpdateWidget(covariant AllEmployeeTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.projectId != widget.projectId ||
+        oldWidget.counter != widget.counter) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => init());
+    }
   }
 
   Future<void> init() async {
@@ -41,7 +56,10 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
         isLoading = false;
       });
       if (response['success'] == true) {
-        setAllEmployee(response['users']);
+        setState(() {
+          allUsers = response['users'];
+        });
+        setAllEmployee(allUsers);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -61,7 +79,11 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
 
   void setAllEmployee(List<dynamic> users) {
     setState(() {
-      employees = users;
+      if (isVerified) {
+        employees = users.where((user) => user['isVerified'] == true).toList();
+      } else {
+        employees = users.where((user) => user['isVerified'] == false).toList();
+      }
     });
   }
 
@@ -78,6 +100,11 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
         isLoading = false;
       });
       if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Account has been updated.'),
+          ),
+        );
         init();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -106,25 +133,54 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header Section
             Container(
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: const BoxDecoration(
                 color: Color.fromARGB(255, 80, 160, 170),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12.0)),
               ),
-              child: const Center(
-                child: Text(
-                  'List of all Employee',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              child: SizedBox(
+                height: 25,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        ((isVerified) ? 'All Verified Employees' : "All Not Verified Employees"),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            isVerified = !isVerified;
+                            setAllEmployee(allUsers);
+                            // init();
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                          minimumSize: const Size(0, 50),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        child: Text(
+                          ((isVerified) ? 'All Not Verified' : "All Verified"),
+                          style: TextStyle(fontSize: 10, color: Colors.black38),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-            // Content Section
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.vertical,
@@ -199,22 +255,28 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                   DataCell(
                                     ElevatedButton(
                                       onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          PageRouteBuilder(
-                                            pageBuilder: (context, animation, secondaryAnimation) {
-                                              return ViewEmployeeScreen(user: user);
-                                            },
-                                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                              const begin = Offset(1.0, 0.0);
-                                              const end = Offset.zero;
-                                              const curve = Curves.easeInOut;
-                                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                              var offsetAnimation = animation.drive(tween);
-                                              return SlideTransition(position: offsetAnimation, child: child);
-                                            },
-                                          ),
-                                        );
+                                        if (!isVerified) {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(builder: (builder) => VerifyEmail(user['email'])));
+                                        } else {
+                                          Navigator.push(
+                                            context,
+                                            PageRouteBuilder(
+                                              pageBuilder: (context, animation, secondaryAnimation) {
+                                                return ViewEmployeeScreen(user: user);
+                                              },
+                                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                                const begin = Offset(1.0, 0.0);
+                                                const end = Offset.zero;
+                                                const curve = Curves.easeInOut;
+                                                var tween =
+                                                    Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                                var offsetAnimation = animation.drive(tween);
+                                                return SlideTransition(position: offsetAnimation, child: child);
+                                              },
+                                            ),
+                                          );
+                                        }
                                       },
                                       style: ElevatedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -222,8 +284,8 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                       ),
                                       child: SizedBox(
                                         width: 30,
-                                        child: const Text(
-                                          'View',
+                                        child: Text(
+                                          (isVerified) ? 'View' : "Verify",
                                           style: TextStyle(color: Colors.white, fontSize: 12),
                                         ),
                                       ),
@@ -238,7 +300,11 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                         backgroundColor: isDeactivated ? Colors.green : Colors.red,
                                       ),
                                       child: Text(
-                                        isDeactivated ? "ACTIVATE" : "DEACTIVATE",
+                                        isDeactivated
+                                            ? "ACTIVATE"
+                                            : isVerified
+                                                ? "DEACTIVATE"
+                                                : "DELETE",
                                         style: const TextStyle(color: Colors.white, fontSize: 12),
                                       ),
                                     ),

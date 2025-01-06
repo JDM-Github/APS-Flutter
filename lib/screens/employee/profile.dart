@@ -1,4 +1,5 @@
 import 'package:first_project/flutter_session.dart';
+import 'package:first_project/handle_request.dart';
 import 'package:first_project/screens/component/projectInfo.dart';
 import 'package:first_project/screens/component/userInfo.dart';
 import 'package:flutter/material.dart';
@@ -57,6 +58,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ListView(
           children: [
             UserInfoSection(
+              users['email'],
+              users['isVerified'],
               fullName: users['firstName'] + " " + users['lastName'],
               position: users['position'],
               ids: users['id'],
@@ -99,11 +102,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ProfileDetailRow('Last Name', users['lastName']!),
                       ProfileDetailRow('Gender', users['gender']!),
                       ProfileDetailRow('Email', users['email']!),
+                      ProfileDetailRow('Location', users['location']!),
+                      ProfileDetailRow('Phone Number', users['phoneNumber']!),
                       ProfileDetailRow('Position', users['position'] == "" ? "NOT ASSIGNED" : users['position']),
                       ProfileDetailRow('Department', users['department']!),
                       ProfileDetailRow('Start Date', users['startDate']!),
                       ProfileDetailRow('End Date', users['endDate'] ?? "NOT SET"),
-                      ProfileDetailRow('Salary', users['position'] == "" ? "NOT ASSIGNED" : users['salary']!),
+                      // ProfileDetailRow('Working Hours', users['workingHrs'] ?? "NOT SET"),
+                      // ProfileDetailRow('Salary', users['position'] == "" ? "NOT ASSIGNED" : users['salary']!),
                     ],
                   ),
                 ),
@@ -132,13 +138,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            // Save Button
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _saveProfileChanges,
+              onPressed: () => { _saveProfileChanges(users['id']) },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 80, 160, 170),
-                minimumSize: Size(double.infinity, 50), // Full-width button
+                minimumSize: Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -154,24 +159,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Function to show profile image picker
   void _pickProfileImage() {
-    // For simplicity, using a hardcoded URL to simulate image selection.
     setState(() {
       profileImageUrl = 'https://via.placeholder.com/150/0000FF';
     });
   }
 
-  void _saveProfileChanges() {
-    setState(() {
-      profileData['address'] = addressController.text;
-      profileData['phone'] = phoneController.text;
-    });
+  Future<void> _saveProfileChanges(String id) async {
+    
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully!')),
-    );
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'users/updateProfile',
+        body: {
+          "userId": id,
+          "address": addressController.text,
+          "phone": phoneController.text,
+        },
+      );
+
+      if (response['success'] == true) {
+        setState(() {
+          profileData['address'] = addressController.text;
+          profileData['phone'] = phoneController.text;
+          Map<String, dynamic> users = Config.get("user");
+          users['location'] = addressController.text;
+          users['phoneNumber'] = phoneController.text;
+          Config.set("user", users);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'] ?? 'Failed to update profile.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
   }
+
+
 }
 
 class ProfileDetailRow extends StatelessWidget {
