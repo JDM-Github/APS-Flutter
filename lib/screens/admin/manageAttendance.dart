@@ -202,7 +202,7 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: ElevatedButton.icon(
-                            onPressed: () => {_setAllAttendance(employees)},
+                            onPressed: () => {_showSetAllAttendanceModal(selectedProjectId)},
                             icon: const Icon(Icons.select_all, color: Colors.white),
                             label:
                                 const Text('Set All Attendance', style: TextStyle(color: Colors.white, fontSize: 12)),
@@ -327,26 +327,6 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // TextFormField(
-                    //   readOnly: true,
-                    //   controller: _timeOutController,
-                    //   onTap: () async {
-                    //     TimeOfDay? pickedTime = await showTimePicker(
-                    //       context: context,
-                    //       initialTime: TimeOfDay.now(),
-                    //     );
-                    //     if (pickedTime != null) {
-                    //       setState(() {
-                    //         _timeOutController.text = pickedTime.format(context);
-                    //       });
-                    //     }
-                    //   },
-                    //   decoration: const InputDecoration(
-                    //     labelText: 'Time Out',
-                    //     border: OutlineInputBorder(),
-                    //     suffixIcon: Icon(Icons.access_time),
-                    //   ),
-                    // ),
                     TextFormField(
                       controller: _placeController,
                       decoration: const InputDecoration(
@@ -410,6 +390,78 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
     );
   }
 
+
+  void _showSetAllAttendanceModal(String projectId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Set All Attendance',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: status,
+                      decoration: const InputDecoration(
+                        labelText: 'Status',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (newValue) {
+                        setState(() {
+                          status = newValue!;
+                        });
+                      },
+                      items: ['Present', 'Late', 'Absent', 'Auto', ].map((String statusOption) {
+                        return DropdownMenuItem<String>(
+                          value: statusOption,
+                          child: Text(statusOption),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setAllAttendance(projectId, status);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                        ),
+                        child: const Text(
+                          'Set All Attendance',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> setAttendance(userId, timeIn, timeOut, place, status) async {
     RequestHandler requestHandler = RequestHandler();
     try {
@@ -447,7 +499,42 @@ class _ManageAttendanceBodyState extends State<ManageAttendanceBody> {
     }
   }
 
-  _setAllAttendance(List employees) {}
+  Future<void> setAllAttendance(String projectId, String status) async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'attendance/setAttendanceAll',
+        body: {"projectId": projectId, "status": status},
+      );
+      setState(() {
+        isLoading = false;
+      });
+      if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Set attendance successfully.'),
+          ),
+        );
+        setState(() {
+          updator++;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Setting all attendance error'),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
 }
 
 class FilterToggleButton extends StatefulWidget {

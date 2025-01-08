@@ -53,7 +53,6 @@ class _AdminAttendanceReportScreenState extends State<AdminAttendanceReportScree
   }
 
   Future<void> onProjectChanged(String projectId) async {
-    print("TEST");
     setState(() {
       selectedProjectId = projectId;
     });

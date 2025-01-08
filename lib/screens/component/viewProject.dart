@@ -1,7 +1,16 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:first_project/screens/employee/projectReports.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:first_project/flutter_session.dart';
+import 'package:first_project/handle_request.dart';
+import 'package:first_project/screens/admin/manageProject.dart';
 import 'package:first_project/screens/component/employee_list.dart';
 import 'package:first_project/screens/component/employeeTable.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> project;
@@ -20,23 +29,17 @@ class ProjectDetailsScreen extends StatefulWidget {
 }
 
 class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
-
-// class ProjectDetailsScreen extends StatelessWidget {
-int counter = 1;
+  int counter = 1;
   late Map<String, dynamic> project;
   late bool isAdmin;
-//   const ProjectDetailsScreen({this.isAdmin = true, required this.project, super.key});
-
   @override
   void initState() {
     super.initState();
     project = widget.project;
     isAdmin = widget.isAdmin;
-    // WidgetsBinding.instance.addPostFrameCallback((_) => init());
   }
 
-  void updateList()
-  {
+  void updateList() {
     setState(() {
       counter++;
     });
@@ -46,14 +49,69 @@ int counter = 1;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // This will be triggered when dependencies change
-    // You can access the context or other inherited widgets here
     print("didChangeDependencies called");
+  }
 
-    // For example, fetching data from a provider (assuming you are using Provider)
-    // final someData = Provider.of<MyData>(context);
+  Future<void> cancelProject() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/cancel-project',
+        body: {
+          "projectId": widget.project['id'],
+        },
+      );
+      if (response['success'] == true) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Project cancelled successfully')),
+        );
+        Navigator.pop(context);
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (builder) => ManageProjectScreen()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Cancelling project error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
 
-    // If something depends on the context or inherited widgets, trigger actions here
+  Future<void> completeProject() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/complete-project',
+        body: {
+          "projectId": widget.project['id'],
+        },
+      );
+      if (response['success'] == true) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Project completed successfully')),
+        );
+        Navigator.pop(context);
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (builder) => ManageProjectScreen()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Completing project error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
   }
 
   @override
@@ -63,49 +121,166 @@ int counter = 1;
         foregroundColor: Colors.white,
         title: const Text('Project Details'),
         backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+        actions: [
+          if (widget.isManager && widget.project['status'] == 'Active')
+            IconButton(
+              icon: const Icon(Icons.report),
+              tooltip: 'Project Report',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProjectReportsPage(project["id"]),
+                  ),
+                );
+              },
+            ),
+          if (widget.isManager && widget.project['status'] == 'Active')
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Add Project Report',
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  builder: (BuildContext context) {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                        left: 16.0,
+                        right: 16.0,
+                        top: 16.0,
+                      ),
+                      child: AddProjectReportForm(
+                        projectId: widget.project['id'],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          if (isAdmin && widget.project['status'] == 'Active')
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit Project Details',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProjectDetailsScreen(project: project),
+                  ),
+                );
+              },
+            ),
+          if (isAdmin && widget.project['status'] == 'Active')
+            IconButton(
+              icon: const Icon(Icons.cancel),
+              tooltip: 'Cancel Project',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Cancel Project'),
+                    content: const Text('Are you sure you want to cancel this project?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          cancelProject();
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Project cancelled successfully')),
+                          );
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          if (isAdmin && widget.project['status'] == 'Active')
+            IconButton(
+              icon: const Icon(Icons.check_circle),
+              tooltip: 'Complete Project',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Complete Project'),
+                    content: const Text('Mark this project as completed?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          completeProject();
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(5.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildCard(
                 title: project['projectType'],
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDetailRow(
-                          'Project Manager', '${project['Users']['firstName']} ${project['Users']['lastName']}'),
-                      _buildDetailRow('Client Name', project['clientName']),
-                      _buildDetailRow('Client Email', project['clientEmail']),
-                      _buildDetailRow('Client Type', project['clientType']),
-                      _buildDetailRow('Budget', project['budget']),
-                      _buildDetailRow('Location', project['projectLocation']),
-                      _buildDetailRow('Start Date', project['startDate']),
-                      _buildDetailRow('End Date', project['endDate']),
-                      _buildDetailRow('Project Type', project['projectType']),
-                      Text(
-                        project['projectDescription'],
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDetailRow(
+                        'Project Manager', '${project['Users']['firstName']} ${project['Users']['lastName']}'),
+                    _buildDetailRow('Client Name', project['clientName']),
+                    _buildDetailRow('Client Email', project['clientEmail']),
+                    _buildDetailRow('Client Type', project['clientType']),
+                    _buildDetailRow('Budget', project['budget']),
+                    _buildDetailRow('Location', project['projectLocation']),
+                    _buildDetailRow('Start Date', project['startDate']),
+                    _buildDetailRow('End Date', project['endDate']),
+                  ],
                 ),
+                onInfoTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Project Description'),
+                      content: Text(project['projectDescription']),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                status: project['status'],
               ),
-              if (isAdmin)
+              if (isAdmin || widget.isManager)
                 Expanded(
                     child: AllEmployeeTable(
                   projectId: project['id'],
-                  counter: counter
+                  counter: counter,
+                  readOnly: widget.project["status"] == "Active",
                 )),
-              if (isAdmin && widget.isManager)
+              if ((isAdmin) && widget.project["status"] == "Active")
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -114,7 +289,8 @@ int counter = 1;
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (builder) => EmployeeListPage(onPop: updateList, ids: project['id'], notAssigned: true)));
+                              builder: (builder) =>
+                                  EmployeeListPage(onPop: updateList, ids: project['id'], notAssigned: true)));
                     },
                     icon: const Icon(Icons.add, color: Colors.white),
                     label: const Text('Add Employee', style: TextStyle(color: Colors.white)),
@@ -133,25 +309,12 @@ int counter = 1;
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCard({required String title, required Widget child}) {
+  Widget _buildCard({
+    required String title,
+    required Widget child,
+    required VoidCallback onInfoTap,
+    required String status, // Add status parameter
+  }) {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -161,22 +324,454 @@ int counter = 1;
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             decoration: const BoxDecoration(
               color: Color.fromARGB(255, 80, 160, 170),
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
             ),
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (status == 'Completed') const Icon(Icons.verified, color: Colors.white, size: 18),
+                    if (status == 'Canceled') const Icon(Icons.cancel, color: Colors.white, size: 18),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.info_outline, color: Colors.white),
+                  onPressed: onInfoTap,
+                  tooltip: 'View Details',
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 18, color: Colors.grey[700]),
+          const SizedBox(width: 8),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                text: '$label: ',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                children: [
+                  TextSpan(
+                    text: value,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          child,
         ],
+      ),
+    );
+  }
+}
+
+class EditProjectDetailsScreen extends StatefulWidget {
+  final Map<String, dynamic> project;
+
+  const EditProjectDetailsScreen({required this.project, super.key});
+
+  @override
+  State<EditProjectDetailsScreen> createState() => _EditProjectDetailsScreenState();
+}
+
+class _EditProjectDetailsScreenState extends State<EditProjectDetailsScreen> {
+  final List<String> projectClient = ['RESIDENTIAL', 'GOVERNMENT', 'COMMERCIAL', 'PUBLIC SECTOR'];
+  String selectedClient = "RESIDENTIAL";
+
+  final _formKey = GlobalKey<FormState>();
+
+  late TextEditingController _clientNameController;
+  late TextEditingController _clientEmailController;
+  late TextEditingController _clientTypeController;
+  late TextEditingController _budgetController;
+  late TextEditingController _locationController;
+  late TextEditingController _endDateController;
+  late TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedClient = widget.project['clientType'];
+    _clientNameController = TextEditingController(text: widget.project['clientName']);
+    _clientEmailController = TextEditingController(text: widget.project['clientEmail']);
+    _clientTypeController = TextEditingController(text: widget.project['clientType']);
+    _budgetController = TextEditingController(text: widget.project['budget']);
+    _locationController = TextEditingController(text: widget.project['projectLocation']);
+    _endDateController = TextEditingController(text: widget.project['endDate']);
+    _descriptionController = TextEditingController(text: widget.project['projectDescription']);
+  }
+
+  @override
+  void dispose() {
+    _clientNameController.dispose();
+    _clientEmailController.dispose();
+    _clientTypeController.dispose();
+    _budgetController.dispose();
+    _locationController.dispose();
+    _endDateController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> editProject(String clientName, String clientEmail, String clientType, String budget, String location,
+      String endDate, String description) async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/edit-project',
+        body: {
+          "clientName": clientName,
+          "clientEmail": clientEmail,
+          "clientType": clientType,
+          "budget": budget,
+          "projectLocation": location,
+          "endDate": endDate,
+          "projectDescription": description,
+          "projectId": widget.project['id'],
+        },
+      );
+      if (response['success'] == true) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Project details updated successfully')),
+        );
+        Navigator.pop(context);
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (builder) => ProjectDetailsScreen(project: response['project'])));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Updating details error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Project Details'),
+        foregroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+        elevation: 4.0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              _buildTextField(_clientNameController, 'Client Name', 'Enter client name'),
+              _buildTextField(_clientEmailController, 'Client Email', 'Enter client email',
+                  keyboardType: TextInputType.emailAddress),
+              // _buildTextField(_clientTypeController, 'Client Type', 'Enter client type'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: DropdownButtonFormField<String>(
+                  value: selectedClient,
+                  items: projectClient
+                      .map((type) => DropdownMenuItem(
+                            value: type,
+                            child: Text(type),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedClient = value!;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Client Type',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              _buildTextField(_budgetController, 'Project Budget', 'Enter project budget',
+                  keyboardType: TextInputType.number),
+              _buildTextField(_locationController, 'Location', 'Enter location'),
+              _buildTextField(_endDateController, 'End Date', 'Enter end date', keyboardType: TextInputType.datetime),
+              _buildTextField(_descriptionController, 'Description', 'Enter project description', maxLines: 3),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        foregroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+        child: const Icon(Icons.save),
+        onPressed: () {
+          if (_formKey.currentState?.validate() ?? false) {
+            // Map<String, dynamic> updatedProject = {
+            //   'clientName': _clientNameController.text,
+            //   'clientEmail': _clientEmailController.text,
+            //   'clientType': selectedClient,
+            //   'budget': _budgetController.text,
+            //   'projectLocation': _locationController.text,
+            //   'endDate': _endDateController.text,
+            //   'projectDescription': _descriptionController.text,
+            // };
+
+            editProject(_clientNameController.text, _clientEmailController.text, selectedClient, _budgetController.text,
+                _locationController.text, _endDateController.text, _descriptionController.text);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, String hintText,
+      {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hintText,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: const Color.fromARGB(255, 80, 160, 170), width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: const Color.fromARGB(255, 80, 160, 170), width: 2),
+          ),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'This field cannot be empty';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+}
+
+class AddProjectReportForm extends StatefulWidget {
+  final String projectId;
+
+  const AddProjectReportForm({required this.projectId, super.key});
+
+  @override
+  State<AddProjectReportForm> createState() => _AddProjectReportFormState();
+}
+
+class _AddProjectReportFormState extends State<AddProjectReportForm> {
+  final _formKey = GlobalKey<FormState>();
+  String? _title;
+  String? _description;
+  File? _selectedImage;
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+    }
+  }
+
+  Future<String> uploadFile(selectedFile) async {
+    if (selectedFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a file to upload.')),
+      );
+      return "";
+    }
+
+    try {
+      var request = http.MultipartRequest(
+          'POST', Uri.parse('https://aps-backend.netlify.app/.netlify/functions/api/file/upload-file'));
+      request.files.add(await http.MultipartFile.fromPath('file', selectedFile));
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        var responseData = jsonDecode(response.body);
+        if (responseData['success']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('File uploaded: ${responseData['uploadedDocument']}')),
+          );
+          return responseData['uploadedDocument'];
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Upload failed: ${responseData['message']}')),
+          );
+        }
+      } else {
+        throw Exception('Failed to upload file. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+    return "";
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      String image = "";
+      if (_selectedImage != null) {
+        image = await uploadFile(_selectedImage?.path);
+      }
+
+      RequestHandler requestHandler = RequestHandler();
+      try {
+        Map<String, dynamic> response = await requestHandler.handleRequest(
+          context,
+          'projects/add-project-report',
+          body: {
+            "title": _title,
+            "description": _description,
+            "projectId": widget.projectId,
+            "image": image,
+          },
+        );
+
+        if (response['success'] == true) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Project report added successfully')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response['message'] ?? 'Failed to update profile.')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Add Project Report',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) => value == null || value.isEmpty ? 'Please enter a title' : null,
+              onSaved: (value) => _title = value,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 4,
+              validator: (value) => value == null || value.isEmpty ? 'Please enter a description' : null,
+              onSaved: (value) => _description = value,
+            ),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(12.0),
+                  color: Colors.grey[200],
+                ),
+                child: _selectedImage != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12.0),
+                        child: Image.file(
+                          _selectedImage!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                      )
+                    : const Center(
+                        child: Text(
+                          'Tap to select an image',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                ),
+                onPressed: _submitForm,
+                child: const Text(
+                  'Submit',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

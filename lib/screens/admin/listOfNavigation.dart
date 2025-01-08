@@ -2,6 +2,7 @@ import 'package:first_project/screens/admin/attendanceReport.dart';
 import 'package:first_project/screens/admin/handleSchedule.dart';
 import 'package:first_project/screens/admin/manageAttendance.dart';
 import 'package:first_project/screens/admin/manageProject.dart';
+import 'package:first_project/screens/admin/projectReports.dart';
 import 'package:first_project/screens/employee/attendanceReport.dart';
 import 'package:flutter/material.dart';
 
@@ -44,7 +45,6 @@ class ListOfNavigation extends StatelessWidget {
             leading: Icon(Icons.report),
             title: const Text('All Attendance Report'),
             onTap: () {
-              // 
               Navigator.push(context, MaterialPageRoute(builder: (builder) => const AdminAttendanceReportScreen()));
             },
           ),
@@ -52,6 +52,7 @@ class ListOfNavigation extends StatelessWidget {
             leading: Icon(Icons.add_alert),
             title: const Text('All Project Report'),
             onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (builder) => ProjectReportsPage()));
             },
           ),
         ],

@@ -224,6 +224,7 @@ class _AddEmployeeModalState extends State<AddEmployee> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Please fill in all the required fields.')),
                       );
+                      return;
                     }
 
                     widget.onSave(
@@ -267,6 +268,49 @@ void showAddEmployeeModal(BuildContext context, Widget page) {
       return AddEmployee(
         onSave: (firstName, lastName, middleInitial, selectedGender, email, password, selectedDepartment,
             selectedSkills, isProjectManager, selectedPosition) async {
+          
+          if (firstName.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('First name cannot be empty')),
+            );
+            return;
+          }
+
+          if (lastName.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Last name cannot be empty')),
+            );
+            return;
+          }
+
+          if (selectedGender.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Gender must be selected')),
+            );
+            return;
+          }
+
+          if (email.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please enter a valid email')),
+            );
+            return;
+          }
+
+          if (selectedDepartment.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Department must be selected')),
+            );
+            return;
+          }
+
+          if (selectedPosition.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Position must be selected')),
+            );
+            return;
+          }
+          
           RequestHandler requestHandler = RequestHandler();
           try {
             Map<String, dynamic> response = await requestHandler.handleRequest(

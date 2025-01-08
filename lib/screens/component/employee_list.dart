@@ -38,7 +38,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
       response = await requestHandler.handleRequest(
         context,
         'users/get-all-employees',
-        body: {"notAssigned": true},
+        body: {"notAssigned": true, "isVerified": true},
       );
       setState(() {
         isLoading = false;

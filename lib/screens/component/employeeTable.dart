@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 class AllEmployeeTable extends StatefulWidget {
   final String projectId;
   final int counter;
-  const AllEmployeeTable({this.projectId = "", this.counter=0, super.key});
+  final bool readOnly;
+  const AllEmployeeTable({this.readOnly=true,this.projectId = "", this.counter=0, super.key});
 
   @override
   State<AllEmployeeTable> createState() => _AllEmployeeTableState();
@@ -231,6 +232,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                   ),
                                 ),
                               ),
+                              if (widget.readOnly)
                               DataColumn(
                                 label: SizedBox(
                                   width: MediaQuery.of(context).size.width * 0.1,
@@ -291,6 +293,7 @@ class _AllEmployeeTableState extends State<AllEmployeeTable> {
                                       ),
                                     ),
                                   ),
+                                  if (widget.readOnly)
                                   DataCell(
                                     ElevatedButton(
                                       onPressed: () {

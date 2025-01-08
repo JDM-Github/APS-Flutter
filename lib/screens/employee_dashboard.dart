@@ -174,6 +174,7 @@ class DashboardBody extends StatelessWidget {
           Expanded(
             child: EmployeeSchedule(users['id'], updator: 0),
           ),
+         
         ],
       ),
     );
@@ -425,7 +426,7 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (builder) => ProjectDetailsScreen(isAdmin: true, isManager: true, project: project)));
+                            builder: (builder) => ProjectDetailsScreen(isAdmin: false, isManager: true, project: project)));
                   },
                 ),
               if (!widget.users['isManager'])

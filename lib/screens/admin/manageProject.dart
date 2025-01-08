@@ -194,7 +194,7 @@ class _ManageProjectBodyState extends State<ManageProjectBody> {
                       });
                     },
                     decoration: const InputDecoration(
-                      labelText: 'Project Type',
+                      labelText: 'Client Type',
                       border: OutlineInputBorder(),
                     ),
                   ),

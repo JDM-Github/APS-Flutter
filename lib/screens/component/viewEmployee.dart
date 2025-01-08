@@ -16,6 +16,7 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
   int updator = 0;
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -32,70 +33,72 @@ class _ViewEmployeeScreen extends State<ViewEmployeeScreen> {
               showAddEmployeeModal();
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.star),
-            tooltip: 'Make Project Manager',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Are you sure?'),
-                  content: const Text('Do you want to make this employee a Project Manager?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        makeEmployeeProjectManager();
-                      },
-                      child: const Text('Yes'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.info),
-            tooltip: 'View Qualifications',
-            onPressed: () {
-              final startDate = DateTime.parse(widget.user['startDate']);
-              final currentDate = DateTime.now();
-              final monthsEmployed = (currentDate.year - startDate.year) * 12 + (currentDate.month - startDate.month);
-              final hasLeadershipSkill = (widget.user['skills'] as List).contains('Leadership');
-              final isQualified = monthsEmployed >= 6 && hasLeadershipSkill;
-              final feedback = <String>[];
-              if (monthsEmployed < 6) {
-                feedback.add('- Only employed for $monthsEmployed months. At least 6 months required.');
-              }
-              if (!hasLeadershipSkill) {
-                feedback.add('- Does not possess Leadership skills.');
-              }
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Qualification Check'),
-                  content: Text(
-                    isQualified
-                        ? 'This employee is qualified to be a Project Manager!'
-                        : 'This employee does not meet the qualifications to be a Project Manager:\n\n${feedback.join('\n')}',
+          if (!widget.user['isManager'])
+            IconButton(
+              icon: const Icon(Icons.star),
+              tooltip: 'Make Project Manager',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Are you sure?'),
+                    content: const Text('Do you want to make this employee a Project Manager?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          makeEmployeeProjectManager();
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Close'),
+                );
+              },
+            ),
+          if (!widget.user['isManager'])
+            IconButton(
+              icon: const Icon(Icons.info),
+              tooltip: 'View Qualifications',
+              onPressed: () {
+                final startDate = DateTime.parse(widget.user['startDate']);
+                final currentDate = DateTime.now();
+                final monthsEmployed = (currentDate.year - startDate.year) * 12 + (currentDate.month - startDate.month);
+                final hasLeadershipSkill = (widget.user['skills'] as List).contains('Leadership');
+                final isQualified = monthsEmployed >= 6 && hasLeadershipSkill;
+                final feedback = <String>[];
+                if (monthsEmployed < 6) {
+                  feedback.add('- Only employed for $monthsEmployed months. At least 6 months required.');
+                }
+                if (!hasLeadershipSkill) {
+                  feedback.add('- Does not possess Leadership skills.');
+                }
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Qualification Check'),
+                    content: Text(
+                      isQualified
+                          ? 'This employee is qualified to be a Project Manager!'
+                          : 'This employee does not meet the qualifications to be a Project Manager:\n\n${feedback.join('\n')}',
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Close'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
         ],
       ),
       body: Padding(

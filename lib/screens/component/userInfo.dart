@@ -29,7 +29,7 @@ class UserInfoSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withAlpha(51),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -39,7 +39,7 @@ class UserInfoSection extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 35,
-            backgroundImage: AssetImage(profileImage),
+            backgroundImage: NetworkImage(profileImage),
             backgroundColor: Colors.white,
           ),
           SizedBox(width: 15),
@@ -87,7 +87,7 @@ class UserInfoSection extends StatelessWidget {
             )
           ),
           IconButton(
-            icon: Icon(!isVerified ? Icons.unarchive : Icons.verified, color: Colors.white),
+            icon: Icon(!isVerified ? Icons.error_outline : Icons.verified, color: Colors.white),
             onPressed: () {
               if (!isVerified)
               {
@@ -96,7 +96,6 @@ class UserInfoSection extends StatelessWidget {
             },
           ),
         ],
-         
         
       ),
     );
