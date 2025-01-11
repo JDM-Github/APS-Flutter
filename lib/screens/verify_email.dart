@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 class VerifyEmail extends StatefulWidget {
   final String email;
   final bool isAdmin;
-  const VerifyEmail(this.email, {super.key,
+  const VerifyEmail(
+    this.email, {
+    super.key,
     this.isAdmin = false,
   });
 
@@ -68,6 +70,51 @@ class _VerifyEmailState extends State<VerifyEmail> {
     }
   }
 
+  Future<void> verifyEmail() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'users/verify-email',
+        body: {
+          'email': widget.email,
+        },
+      );
+
+      if (response['success'] == true) {
+        if (mounted) {
+          Navigator.pop(context);
+          if (widget.isAdmin) {
+            //   Navigator.pushReplacement(
+            //     context,
+            //     MaterialPageRoute(builder: (builder) => const AdminDashboardScreen()),
+            //   );
+            // } else {
+            //   Navigator.pushReplacement(
+            //     context,
+            //     MaterialPageRoute(builder: (builder) => const DashboardScreen()),
+            //   );
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Account email has been verified successfully!')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response['message'] ?? 'Account email verification failed')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,7 +149,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                   sendEmail();
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Verification code sent to ${widget.email}')),
+                  SnackBar(content: Text('Verification code sent to ${widget.email}')),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -131,48 +178,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
               ElevatedButton(
                 onPressed: () async {
                   if (codeController.text == verificationCode) {
-                    RequestHandler requestHandler = RequestHandler();
-                    try {
-                      Map<String, dynamic> response = await requestHandler.handleRequest(
-                        context,
-                        'users/verify-email',
-                        body: {
-                          'email': widget.email,
-                        },
-                      );
-
-                      if (response['success'] == true) {
-                        if (mounted) {
-                          if (widget.isAdmin)
-                          {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-                            );
-                          } else {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const DashboardScreen()),
-                            );
-                          }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Account email has been verified successfully!')),
-                          );
-                        }
-                      } else {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(response['message'] ?? 'Account email verification failed')),
-                          );
-                        }
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('An error occurred: $e')),
-                        );
-                      }
-                    }
+                    verifyEmail();
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Wrong Verification Code')),

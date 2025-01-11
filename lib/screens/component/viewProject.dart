@@ -473,7 +473,7 @@ class _EditProjectDetailsScreenState extends State<EditProjectDetailsScreen> {
         );
         Navigator.pop(context);
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (builder) => ProjectDetailsScreen(project: response['project'])));
+            context, MaterialPageRoute(builder: (builder) => ManageProjectScreen()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -506,7 +506,6 @@ class _EditProjectDetailsScreenState extends State<EditProjectDetailsScreen> {
               _buildTextField(_clientNameController, 'Client Name', 'Enter client name'),
               _buildTextField(_clientEmailController, 'Client Email', 'Enter client email',
                   keyboardType: TextInputType.emailAddress),
-              // _buildTextField(_clientTypeController, 'Client Type', 'Enter client type'),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: DropdownButtonFormField<String>(
@@ -531,7 +530,32 @@ class _EditProjectDetailsScreenState extends State<EditProjectDetailsScreen> {
               _buildTextField(_budgetController, 'Project Budget', 'Enter project budget',
                   keyboardType: TextInputType.number),
               _buildTextField(_locationController, 'Location', 'Enter location'),
-              _buildTextField(_endDateController, 'End Date', 'Enter end date', keyboardType: TextInputType.datetime),
+              TextFormField(
+                controller: _endDateController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'End Date',
+                  hintText: 'Select end date',
+                  border: OutlineInputBorder(),
+                ),
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: _endDateController.text.isNotEmpty
+                        ? DateTime.parse(_endDateController.text)
+                        : DateTime.now(),
+                    firstDate: DateTime(2000), 
+                    lastDate: DateTime(2101),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      _endDateController.text = "${pickedDate.toLocal()}".split(' ')[0];
+                    });
+                  }
+                },
+              ),
+
+              // _buildTextField(_endDateController, 'End Date', 'Enter end date', keyboardType: TextInputType.datetime),
               _buildTextField(_descriptionController, 'Description', 'Enter project description', maxLines: 3),
             ],
           ),
