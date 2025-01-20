@@ -56,8 +56,6 @@ class ConfirmTimeoutModal extends StatelessWidget {
   }
 }
 
-
-
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key});
 
@@ -121,15 +119,12 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             );
           },
         ),
-
-
         IconButton(
           icon: const Icon(Icons.notifications),
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (builder) => NotificationScreen(users)));
           },
         ),
-        
         IconButton(
           icon: const Icon(Icons.account_circle),
           onPressed: () {
@@ -174,7 +169,6 @@ class DashboardBody extends StatelessWidget {
           Expanded(
             child: EmployeeSchedule(users['id'], updator: 0),
           ),
-         
         ],
       ),
     );
@@ -423,10 +417,19 @@ class _NavigatorEmployee extends State<NavigatorEmployee> {
                   label: 'View Project',
                   icon: Icons.folder,
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (builder) => ProjectDetailsScreen(isAdmin: false, isManager: true, project: project)));
+                    print(project);
+                    if (project == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('There is no project assigned.')),
+                      );
+                    }
+                    if (project != null) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (builder) =>
+                                  ProjectDetailsScreen(isAdmin: false, isManager: true, project: project)));
+                    }
                   },
                 ),
               if (!widget.users['isManager'])

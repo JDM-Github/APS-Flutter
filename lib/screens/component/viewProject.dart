@@ -114,8 +114,38 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     }
   }
 
+  Future<void> updateTask() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'projects/update-task-project',
+        body: {
+          "projectId": widget.project['id'],
+          "task": widget.project['task']
+        },
+      );
+      if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Project task updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Updating project error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    print(widget.project);
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
@@ -233,76 +263,191 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCard(
-                title: project['projectType'],
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDetailRow(
-                        'Project Manager', '${project['Users']['firstName']} ${project['Users']['lastName']}'),
-                    _buildDetailRow('Client Name', project['clientName']),
-                    _buildDetailRow('Client Email', project['clientEmail']),
-                    _buildDetailRow('Client Type', project['clientType']),
-                    _buildDetailRow('Budget', project['budget']),
-                    _buildDetailRow('Location', project['projectLocation']),
-                    _buildDetailRow('Start Date', project['startDate']),
-                    _buildDetailRow('End Date', project['endDate']),
-                  ],
-                ),
-                onInfoTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Project Description'),
-                      content: Text(project['projectDescription']),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Close'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                status: project['status'],
-              ),
-              if (isAdmin || widget.isManager)
-                Expanded(
-                    child: AllEmployeeTable(
-                  projectId: project['id'],
-                  counter: counter,
-                  readOnly: widget.project["status"] == "Active",
-                )),
-              if ((isAdmin) && widget.project["status"] == "Active")
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (builder) =>
-                                  EmployeeListPage(onPop: updateList, ids: project['id'], notAssigned: true)));
-                    },
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('Add Employee', style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 80, 160, 170),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+          padding: const EdgeInsets.all(8.0),
+          child: Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCard(
+                  title: project['projectType'],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildDetailRow(
+                          'Project Manager', '${project['Users']['firstName']} ${project['Users']['lastName']}'),
+                      _buildDetailRow('Client Name', project['clientName']),
+                      _buildDetailRow('Client Email', project['clientEmail']),
+                      _buildDetailRow('Client Type', project['clientType']),
+                      _buildDetailRow('Budget', project['budget']),
+                      _buildDetailRow('Location', project['projectLocation']),
+                      _buildDetailRow('Start Date', project['startDate']),
+                      _buildDetailRow('End Date', project['endDate']),
+                    ],
+                  ),
+                  onInfoTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Project Description'),
+                        content: Text(project['projectDescription']),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                        ],
                       ),
+                    );
+                  },
+                  status: project['status'],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Project Agreement',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FullscreenImageView(imageUrl: project['projectAgreement']),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(12.0),
+                      color: Colors.grey[200],
+                    ),
+                    child: project['projectAgreement'] != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: Image.network(
+                              project['projectAgreement'],
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : const Center(
+                            child: Text(
+                              'No agreement uploaded',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Tasks',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 300,
+                  child: ListView.builder(
+                    itemCount: project['task'].length,
+                    itemBuilder: (context, index) {
+                      final task = jsonDecode(project['task'][index]);
+                      bool isChecked = task['isFinished'] ?? false;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Task Name: ${task['name']}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Description: ${task['description']}',
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (widget.isManager)
+                                    Checkbox(
+                                      value: task['isFinished'],
+                                      onChanged: (value) async {
+                                        setState(() {
+                                          task['isFinished'] = !task['isFinished'];
+                                          widget.project['task'][index] = jsonEncode(task);
+                                        });
+
+                                        updateTask();
+                                      },
+                                    ),
+
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (isAdmin || widget.isManager)
+                  SizedBox(
+                    height: 500,
+                    child: AllEmployeeTable(
+                      projectId: project['id'],
+                      counter: counter,
+                      readOnly: widget.project["status"] == "Active",
                     ),
                   ),
-                )
-            ],
+                if ((isAdmin) && widget.project["status"] == "Active")
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (builder) =>
+                                    EmployeeListPage(onPop: updateList, ids: project['id'], notAssigned: true)));
+                      },
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: const Text('Add Employee', style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 80, 160, 170),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  )
+              ],
+            ),
           ),
         ),
       ),

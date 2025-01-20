@@ -13,11 +13,10 @@ class ManageLeavesScreen extends StatefulWidget {
 
 class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
   TextEditingController startDate = new TextEditingController();
-  final List<String> _employees = ['John Doe', 'Jane Smith', 'Michael Johnson', 'Emily Davis'];
+  List<dynamic> _employees = [];
 
   final List<String> _leaveTypes = ['Sick Leave', 'Casual Leave', 'Annual Leave'];
   List<dynamic> _leaveRequests = [];
-
   String selectedProjectId = "";
 
   @override
@@ -38,7 +37,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
       if (response['success'] == true) {
         setState(() {
           _leaveRequests = response['data'];
-          print(response['data']);
+          _employees = response['employees'];
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -79,19 +78,45 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
     }
   }
 
-  void _addLeaveRequest() {
+  void _addLeaveRequest() async {
     if (_selectedEmployee != null &&
         _selectedLeaveType != null &&
         _startDateController.text.isNotEmpty &&
         _endDateController.text.isNotEmpty) {
-      setState(() {
-        _leaveRequests.add({
-          'employee': _selectedEmployee,
+      // setState(() {
+      //   _leaveRequests.add({
+      //     'employee': _selectedEmployee,
+      //     'leaveType': _selectedLeaveType,
+      //     'startDate': _startDateController.text,
+      //     'endDate': _endDateController.text,
+      //   });
+      // });
+
+      RequestHandler requestHandler = RequestHandler();
+      try {
+        Map<String, dynamic> response =
+            await requestHandler.handleRequest(context, 'projects/requestLeave', body: {
+          'userId': _selectedEmployee,
           'leaveType': _selectedLeaveType,
           'startDate': _startDateController.text,
           'endDate': _endDateController.text,
+          'reason': "DEFAULT"
         });
-      });
+
+        if (response['success'] == true) {
+          init();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? 'Updated projects error'),
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred: $e')),
+        );
+      }
     }
     Navigator.pop(context);
   }
@@ -124,8 +149,10 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                   value: _selectedEmployee,
                   items: _employees
                       .map((employee) => DropdownMenuItem(
-                            value: employee,
-                            child: Text(employee),
+                            value: employee['id'] as String,
+                            child: Text(employee['id'] == widget.users['id']
+                                ? "You"
+                                : "${employee['firstName']} ${employee['lastName']}"),
                           ))
                       .toList(),
                   onChanged: (value) {
@@ -210,11 +237,6 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-              icon: const Icon(Icons.list_alt),
-              onPressed: () =>
-                  {Navigator.push(context, MaterialPageRoute(builder: (builder) => const LeaveRequestsScreen()))},
-              tooltip: 'View Leave Requests'),
-          IconButton(
             icon: const Icon(Icons.add),
             onPressed: _showAddLeaveModal,
           ),
@@ -255,14 +277,12 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                             '${DateTime.parse(leave['startDate']).toLocal().toString().split(' ')[0]} to '
                             '${DateTime.parse(leave['endDate']).toLocal().toString().split(' ')[0]}',
                           ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              setState(() {
-                                _leaveRequests.removeAt(index);
-                              });
-                            },
-                          ),
+                          trailing: leave['accepted'] || leave['denied']
+                              ? const Icon(Icons.check_circle, color: Colors.green)
+                              : IconButton(
+                                  icon: const Icon(Icons.info, color: Colors.blue),
+                                  onPressed: () => _showLeaveDetails(context, leave, index),
+                                ),
                         );
                       },
                     ),
@@ -271,5 +291,91 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
         ),
       ),
     );
+  }
+
+  void _showLeaveDetails(BuildContext context, Map<String, dynamic> leave, int index) {
+    if (leave['accepted'] || leave['denied']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('This leave request is already ${leave['accepted'] ? "accepted" : "rejected"}.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Leave Details for ${leave['User']['firstName']} ${leave['User']['lastName']}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Leave Type: ${leave['leaveType']}'),
+            const SizedBox(height: 8),
+            Text(
+                'Dates: ${DateTime.parse(leave['startDate']).toLocal().toString().split(' ')[0]} to ${DateTime.parse(leave['endDate']).toLocal().toString().split(' ')[0]}'),
+            const SizedBox(height: 8),
+            Text('Reason: ${leave['reason']}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _updateLeaveStatus(index, 'Rejected');
+            },
+            child: const Text('Reject', style: TextStyle(color: Colors.red)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _updateLeaveStatus(index, 'Accepted');
+            },
+            child: const Text('Accept', style: TextStyle(color: Colors.green)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _updateLeaveStatus(int index, String status) async {
+    if (_leaveRequests[index]['accepted'] || _leaveRequests[index]['denied']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('This leave request is already ${_leaveRequests[index]['accepted'] ? "accepted" : "rejected"}.')),
+      );
+      return;
+    }
+
+    try {
+      final response = await RequestHandler().handleRequest(
+        context,
+        'users/updateLeaveRequest',
+        body: {
+          'leaveId': _leaveRequests[index]['id'],
+          'accepted': status == 'Accepted',
+          'denied': status == 'Rejected',
+        },
+      );
+
+      if (response['success'] == true) {
+        setState(() {
+          _leaveRequests[index]['accepted'] = status == 'Accepted';
+          _leaveRequests[index]['denied'] = status == 'Rejected';
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Leave request has been $status.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update leave request.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
   }
 }

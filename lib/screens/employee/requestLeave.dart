@@ -1,10 +1,11 @@
+import 'package:first_project/handle_request.dart';
 import 'package:flutter/material.dart';
 
 class LeaveRequestsScreen extends StatefulWidget {
   const LeaveRequestsScreen({super.key});
 
   @override
-  _LeaveRequestsScreenState createState() => _LeaveRequestsScreenState();
+  State<LeaveRequestsScreen> createState() => _LeaveRequestsScreenState();
 }
 
 class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
@@ -26,6 +27,36 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
       'reason': '',
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  Future<void> init() async {
+    RequestHandler requestHandler = RequestHandler();
+    try {
+      Map<String, dynamic> response = await requestHandler.handleRequest(
+        context,
+        'users/get-all-leave-request',
+        body: {"projectId": true},
+      );
+      if (response['success'] == true) {
+        print(response['data']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Loading project managers error'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
 
   void _showLeaveRequestDetails(int index) {
     final leave = _leaveRequests[index];
